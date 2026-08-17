@@ -1,455 +1,142 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CraftFun 3D - World Creator Edition</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      user-select: none;
-    }
-    body, html {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #111;
-      color: #fff;
-    }
+    <meta charset="UTF-8">
+    <title>Crafti.io Menu</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body {
+            background: url('background.jpg') no-repeat center center fixed;
+            background-size: cover;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
 
-    /* Crosshair */
-    #crosshair {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 16px;
-      height: 16px;
-      transform: translate(-50%, -50%);
-      pointer-events: none;
-      z-index: 10;
-      display: none;
-    }
-    #crosshair::before, #crosshair::after {
-      content: '';
-      position: absolute;
-      background: rgba(255, 255, 255, 0.8);
-    }
-    #crosshair::before { top: 7px; left: 0; width: 16px; height: 2px; }
-    #crosshair::after { top: 0; left: 7px; width: 2px; height: 16px; }
+        /* القائمة الجانبية اليسرى */
+        .sidebar {
+            width: 250px;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 10px;
+        }
+        .sidebar h2 { color: white; margin-bottom: 20px; text-shadow: 2px 2px #000; }
+        .side-btn {
+            width: 90%;
+            padding: 12px;
+            margin: 10px 0;
+            background: #ccc;
+            border: 2px solid #888;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
 
-    /* Lobby Screens */
-    .overlay-screen {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.65);
-      backdrop-filter: blur(8px);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 50;
-    }
+        /* المنطقة الرئيسية */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .game-title {
+            font-size: 80px;
+            color: #55ffff;
+            text-shadow: 4px 4px #000;
+            margin-bottom: 40px;
+        }
+        .menu-btn {
+            width: 320px;
+            padding: 15px;
+            margin: 10px 0;
+            background: #bbb;
+            border: 2px solid #666;
+            border-radius: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+        }
 
-    .lobby-title {
-      font-size: 3rem;
-      color: #55ff55;
-      text-shadow: 3px 3px #000;
-      margin-bottom: 20px;
-    }
-
-    /* Lobby Main Layout */
-    .lobby-container {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 40px;
-      width: 90%;
-      max-width: 950px;
-    }
-
-    .menu-column {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      width: 220px;
-    }
-
-    .btn {
-      background: #2a2a2a;
-      border: 2px solid #555;
-      color: #fff;
-      padding: 12px;
-      font-size: 1rem;
-      font-weight: bold;
-      border-radius: 8px;
-      cursor: pointer;
-      text-align: center;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 0 #111;
-    }
-    .btn:hover {
-      background: #444;
-      border-color: #55ff55;
-      color: #55ff55;
-      transform: translateY(-2px);
-    }
-
-    .shop-btn {
-      background: #ffaa00;
-      border-color: #ffcc00;
-      color: #000;
-      width: 180px;
-    }
-
-    /* Player Model */
-    .skin-card {
-      width: 180px;
-      height: 240px;
-      background: rgba(0, 0, 0, 0.6);
-      border: 3px solid #555;
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    .char-head { width: 40px; height: 40px; background: #ffcc99; border: 2px solid #000; }
-    .char-body { width: 50px; height: 60px; background: #00aaaa; border: 2px solid #000; margin-top: 2px; }
-    .char-legs { width: 40px; height: 40px; background: #0000aa; border: 2px solid #000; margin-top: 2px; }
-
-    /* Create World Modal Form */
-    #create-world-modal {
-      display: none;
-      background: rgba(20, 20, 20, 0.95);
-      border: 2px solid #55ff55;
-      border-radius: 12px;
-      padding: 25px;
-      width: 420px;
-      flex-direction: column;
-      gap: 15px;
-    }
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      text-align: right;
-    }
-    .form-group label {
-      font-size: 0.9rem;
-      color: #aaa;
-    }
-    .form-control {
-      background: #111;
-      border: 1px solid #444;
-      color: #fff;
-      padding: 10px;
-      border-radius: 6px;
-      outline: none;
-      font-size: 0.95rem;
-    }
-
-    /* In-Game HUD Elements */
-    #ui-container {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 5;
-    }
-    #chat-box {
-      position: absolute;
-      bottom: 80px;
-      left: 20px;
-      width: 360px;
-      height: 180px;
-      background: rgba(0, 0, 0, 0.5);
-      border-radius: 8px;
-      display: flex;
-      flex-direction: column;
-      padding: 10px;
-      pointer-events: auto;
-    }
-    #chat-messages {
-      flex: 1;
-      overflow-y: auto;
-      font-size: 13px;
-      direction: ltr;
-      text-align: left;
-    }
-    #chat-input {
-      margin-top: 6px;
-      background: rgba(0, 0, 0, 0.7);
-      border: 1px solid #444;
-      color: #fff;
-      padding: 6px;
-      border-radius: 4px;
-      outline: none;
-      direction: ltr;
-    }
-
-    #hotbar {
-      position: absolute;
-      bottom: 15px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 6px;
-      background: rgba(0, 0, 0, 0.6);
-      padding: 6px;
-      border-radius: 8px;
-      border: 2px solid #444;
-    }
-    .slot {
-      width: 42px;
-      height: 42px;
-      background: rgba(255, 255, 255, 0.1);
-      border: 2px solid #555;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-    }
-
-    #hud-info {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      background: rgba(0, 0, 0, 0.6);
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 12px;
-      direction: ltr;
-    }
-  </style>
+        /* الشاشات المنبثقة (Modals) */
+        .modal {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-title { color: white; font-size: 36px; margin-bottom: 20px; }
+        .grid-modes {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        .mode-card {
+            width: 140px; height: 90px;
+            background: #444; color: white;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 8px; font-weight: bold; cursor: pointer;
+        }
+    </style>
 </head>
 <body>
 
-  <!-- Main Lobby Screen -->
-  <div id="lobby-overlay" class="overlay-screen">
-    <h1 class="lobby-title">CRAFTFUN LOBBY</h1>
-    
-    <div class="lobby-container">
-      <div class="menu-column">
-        <div class="btn" onclick="openCreateWorldMenu()">Create New World</div>
-        <div class="btn" onclick="alert('سيرفرات الأونلاين قريباً!')">Multiplayer</div>
-      </div>
+    <!-- القائمة الجانبية -->
+    <div class="sidebar">
+        <h2>MENU</h2>
+        <button class="side-btn" onclick="openModal('shopModal')">shop</button>
+        <button class="side-btn" onclick="openModal('dressingModal')">Dressing room</button>
+    </div>
 
-      <div style="display:flex; flex-direction:column; align-items:center; gap:15px;">
-        <div class="btn shop-btn" onclick="alert('المتجر قريباً!')">🛒 SHOP</div>
-        <div class="skin-card">
-          <div class="char-head"></div>
-          <div class="char-body"></div>
-          <div class="char-legs"></div>
-          <span style="margin-top: 10px; font-weight: bold; color: #ffaa00;">Steve</span>
+    <!-- الواجهة الرئيسية -->
+    <div class="main-content">
+        <h1 class="game-title">Crafti.io</h1>
+        <button class="menu-btn" onclick="openModal('singleModal')">singleplayer<br><small>(offline)</small></button>
+        <button class="menu-btn" onclick="openModal('multiModal')">Multiplayer<br><small>(online)</small></button>
+        <button class="menu-btn">version (26.0)</button>
+    </div>
+
+    <!-- شاشة اللعب الفردي -->
+    <div id="singleModal" class="modal">
+        <h2 class="modal-title">singleplayer</h2>
+        <button class="menu-btn">My World</button>
+        <button class="menu-btn">create a new world</button>
+        <button class="menu-btn" onclick="closeModals()" style="background:#e74c3c; color:white;">cancel</button>
+    </div>
+
+    <!-- شاشة اللعب الجماعي -->
+    <div id="multiModal" class="modal">
+        <h2 class="modal-title">MULTIPLAYER</h2>
+        <div class="grid-modes">
+            <div class="mode-card">INFECTION</div>
+            <div class="mode-card">PARKOUR</div>
+            <div class="mode-card">CREATIVE</div>
+            <div class="mode-card">HIDE AND SEEK</div>
+            <div class="mode-card">THE WAR</div>
+            <div class="mode-card">SKY WARS</div>
+            <div class="mode-card">ONE BLOCK</div>
+            <div class="mode-card">BED WARS</div>
+            <div class="mode-card">COMING SOON</div>
         </div>
-      </div>
-
-      <div class="menu-column">
-        <div class="btn" onclick="alert('القوانين: 1. احترام الآخرين 2. عدم التخريب')">Rules</div>
-        <div class="btn" onclick="alert('Realms قريباً!')">Realms</div>
-      </div>
+        <button class="menu-btn" onclick="closeModals()" style="margin-top:20px; background:#e74c3c; color:white;">CANCEL</button>
     </div>
 
-    <!-- Create World Modal Window -->
-    <div id="create-world-modal">
-      <h2 style="text-align: center; color: #55ff55;">إعدادات العالم الجديد</h2>
-      
-      <div class="form-group">
-        <label>اسم العالم:</label>
-        <input type="text" id="world-name" class="form-control" value="My World">
-      </div>
-
-      <div class="form-group">
-        <label>طور اللعب (Game Mode):</label>
-        <select id="select-gamemode" class="form-control">
-          <option value="creative">Creative (إبداعي - طيران وبناء)</option>
-          <option value="survival">Survival (بقاء - جاذبية وموارد)</option>
-          <option value="spectator">Spectator (مشاهد - طيران حر)</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>نوع العالم (World Type):</label>
-        <select id="select-worldtype" class="form-control">
-          <option value="flat">عالم مستوي (Flat Ground)</option>
-          <option value="void">عالم فارغ تماماً (Void Platform)</option>
-          <option value="procedural">عالم طبيعي وتضاريس (Normal World)</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>إصدار اللعبة (Texture Version):</label>
-        <select id="select-version" class="form-control">
-          <option value="v120">Minecraft 1.20+ Modern</option>
-          <option value="v112">Minecraft Classic 1.12</option>
-          <option value="minefun">MineFun Style</option>
-        </select>
-      </div>
-
-      <div style="display:flex; gap:10px; margin-top:10px;">
-        <button class="btn" style="flex:1; background:#55aa44;" onclick="generateWorldAndPlay()">إنشاء والبدء</button>
-        <button class="btn" style="flex:1; background:#aa3333;" onclick="closeCreateWorldMenu()">إلغاء</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="crosshair"></div>
-
-  <!-- Game HUD -->
-  <div id="ui-container">
-    <div id="hud-info">
-      Mode: <span id="hud-mode">Creative</span> | Version: <span id="hud-ver">1.20</span>
-    </div>
-
-    <div id="chat-box">
-      <div id="chat-messages">
-        <div style="color:#55ff55;">تم إنشاء العالم بنجاح! اكتب /help للأوامر.</div>
-      </div>
-      <input type="text" id="chat-input" placeholder="اضغط Enter للكتابة..." autocomplete="off">
-    </div>
-
-    <div id="hotbar">
-      <div class="slot">عشب</div>
-      <div class="slot">تراب</div>
-      <div class="slot">حجر</div>
-      <div class="slot">خشب</div>
-    </div>
-  </div>
-
-  <!-- Three.js Engine -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
-
-  <script>
-    // --- 1. Scene & Engine Initialization ---
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x87ceeb);
-
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
-
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-    scene.add(ambientLight);
-
-    const controls = new THREE.PointerLockControls(camera, document.body);
-
-    const blockGeo = new THREE.BoxGeometry(1, 1, 1);
-    const blocksGroup = new THREE.Group();
-    scene.add(blocksGroup);
-
-    let activeGameMode = "creative";
-
-    // --- 2. World Creation Logic ---
-    function openCreateWorldMenu() {
-      document.getElementById('create-world-modal').style.display = 'flex';
-    }
-
-    function closeCreateWorldMenu() {
-      document.getElementById('create-world-modal').style.display = 'none';
-    }
-
-    function generateWorldAndPlay() {
-      // Get Values from Form
-      const mode = document.getElementById('select-gamemode').value;
-      const worldType = document.getElementById('select-worldtype').value;
-      const version = document.getElementById('select-version').value;
-
-      activeGameMode = mode;
-      document.getElementById('hud-mode').textContent = mode.toUpperCase();
-      document.getElementById('hud-ver').textContent = version;
-
-      // Clear existing blocks
-      while(blocksGroup.children.length > 0){ 
-        blocksGroup.remove(blocksGroup.children[0]); 
-      }
-
-      // Generate World According to User Selection
-      if (worldType === 'flat') {
-        for (let x = -15; x <= 15; x++) {
-          for (let z = -15; z <= 15; z++) {
-            const mat = new THREE.MeshLambertMaterial({ color: 0x55aa44 });
-            const block = new THREE.Mesh(blockGeo, mat);
-            block.position.set(x, 0, z);
-            blocksGroup.add(block);
-          }
+    <script>
+        function openModal(id) {
+            closeModals();
+            document.getElementById(id).style.display = 'flex';
         }
-        camera.position.set(0, 3, 5);
-      } 
-      else if (worldType === 'void') {
-        // Void World: Only 3x3 platform
-        for (let x = -1; x <= 1; x++) {
-          for (let z = -1; z <= 1; z++) {
-            const mat = new THREE.MeshLambertMaterial({ color: 0x888888 });
-            const block = new THREE.Mesh(blockGeo, mat);
-            block.position.set(x, 0, z);
-            blocksGroup.add(block);
-          }
+        function closeModals() {
+            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
         }
-        camera.position.set(0, 3, 3);
-      } 
-      else if (worldType === 'procedural') {
-        // Normal World: Hills and Random Terrain
-        for (let x = -15; x <= 15; x++) {
-          for (let z = -15; z <= 15; z++) {
-            const h = Math.floor(Math.sin(x * 0.3) * Math.cos(z * 0.3) * 2);
-            const mat = new THREE.MeshLambertMaterial({ color: h > 0 ? 0x55aa44 : 0x855E42 });
-            const block = new THREE.Mesh(blockGeo, mat);
-            block.position.set(x, h, z);
-            blocksGroup.add(block);
-          }
-        }
-        camera.position.set(0, 5, 5);
-      }
-
-      // Hide Lobby and Lock Controls
-      document.getElementById('lobby-overlay').style.display = 'none';
-      document.getElementById('crosshair').style.display = 'block';
-      controls.lock();
-    }
-
-    controls.addEventListener('unlock', () => {
-      document.getElementById('lobby-overlay').style.display = 'flex';
-      document.getElementById('crosshair').style.display = 'none';
-    });
-
-    // --- 3. Chat System ---
-    const chatInput = document.getElementById('chat-input');
-    const chatMessages = document.getElementById('chat-messages');
-
-    chatInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && chatInput.value.trim() !== '') {
-        const div = document.createElement('div');
-        div.textContent = `[Player]: ${chatInput.value.trim()}`;
-        chatMessages.appendChild(div);
-        chatInput.value = '';
-        chatInput.blur();
-        controls.lock();
-      }
-    });
-
-    // --- Render Loop ---
-    function animate() {
-      requestAnimationFrame(animate);
-      renderer.render(scene, camera);
-    }
-    animate();
-
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-  </script>
+    </script>
 </body>
 </html>
