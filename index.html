@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crafti.io - Improved Physics & Mobs</title>
+    <title>Crafti.io - True MineFun Clone</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; user-select: none; }
@@ -11,14 +11,15 @@
 
         #lobbyScreen {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #18181c; display: flex; flex-direction: column; 
+            background: rgba(10, 10, 15, 0.95); display: flex; flex-direction: column; 
             align-items: center; justify-content: center; z-index: 500; color: #fff;
         }
 
-        .lobby-title { font-size: 48px; color: #00e5ff; margin-bottom: 20px; font-weight: bold; }
-        .menu-card { background: #23232a; border: 2px solid #00e5ff; padding: 25px; border-radius: 12px; width: 340px; display: flex; flex-direction: column; gap: 15px; }
+        .lobby-title { font-size: 52px; color: #00e5ff; margin-bottom: 20px; font-weight: 900; text-shadow: 0 0 10px #00e5ff; }
+        .menu-card { background: #1c1c24; border: 2px solid #00e5ff; padding: 25px; border-radius: 12px; width: 340px; display: flex; flex-direction: column; gap: 15px; }
 
         .setting-group { display: flex; flex-direction: column; gap: 5px; text-align: right; }
+        .setting-group label { font-size: 13px; color: #aaa; }
         .setting-group select { padding: 10px; background: #2a2a36; border: 1px solid #444; color: #fff; border-radius: 6px; outline: none; }
 
         .btn-start {
@@ -27,47 +28,47 @@
         }
         .btn-start:hover { background: #16a34a; }
 
-        #crosshair { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 26px; pointer-events: none; z-index: 100; display: none; font-weight: bold; }
-        #ui-overlay { position: fixed; top: 15px; left: 15px; color: white; background: rgba(0,0,0,0.8); padding: 10px 15px; border-radius: 8px; z-index: 100; font-size: 13px; display: none; line-height: 1.5; }
+        #crosshair { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 24px; pointer-events: none; z-index: 100; display: none; }
+        #ui-overlay { position: fixed; top: 15px; left: 15px; color: white; background: rgba(0,0,0,0.8); padding: 10px 15px; border-radius: 8px; z-index: 100; font-size: 13px; display: none; }
         .exit-btn { position: fixed; top: 15px; right: 15px; z-index: 100; display: none; padding: 8px 16px; background: #ef4444; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
 
         #hotbar {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            display: none; gap: 8px; background: rgba(0,0,0,0.6); padding: 6px; border-radius: 8px; z-index: 100;
+            display: none; gap: 8px; background: rgba(0,0,0,0.7); padding: 6px; border-radius: 8px; z-index: 100; border: 1px solid #444;
         }
-        .hotbar-slot { width: 50px; height: 50px; border: 2px solid #555; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 12px; }
-        .hotbar-slot.active { border-color: #00e5ff; background: rgba(0, 229, 255, 0.2); }
+        .hotbar-slot { width: 48px; height: 48px; border: 2px solid #555; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 11px; }
+        .hotbar-slot.active { border-color: #00e5ff; background: rgba(0, 229, 255, 0.25); }
     </style>
 </head>
 <body>
 
     <div id="lobbyScreen">
-        <h1 class="lobby-title">Crafti.io Pro</h1>
+        <h1 class="lobby-title">Crafti.io</h1>
         <div class="menu-card">
             <div class="setting-group">
                 <label>نمط اللعب:</label>
                 <select id="gameMode">
-                    <option value="survival">بقاء (Survival)</option>
                     <option value="creative">إبداعي (Creative)</option>
+                    <option value="survival">بقاء (Survival)</option>
                 </select>
             </div>
             <div class="setting-group">
                 <label>نوع العالم:</label>
                 <select id="worldType">
-                    <option value="normal">عادي (تضاريس وكهوف)</option>
-                    <option value="flat">مسطح (Flat)</option>
+                    <option value="infinite">عالم لا نهائي (Infinite World)</option>
+                    <option value="flat">عالم مسطح (Flat World)</option>
                 </select>
             </div>
-            <button class="btn-start" onclick="enterGame()">دخول اللعبة</button>
+            <button class="btn-start" onclick="enterGame()">ابدأ اللعب الآن</button>
         </div>
     </div>
 
-    <button id="exitBtn" class="exit-btn" onclick="location.reload()">العودة للقائمة</button>
+    <button id="exitBtn" class="exit-btn" onclick="location.reload()">القائمة الرئيسية</button>
     <div id="crosshair">+</div>
     <div id="ui-overlay">
         WASD: تحرك | Space: قفز<br>
         كليك يسار: كسر | كليك يمين: بناء<br>
-        1-4: اختيار البلوك
+        1-4: تغيير البلوك
     </div>
 
     <div id="hotbar">
@@ -80,35 +81,65 @@
     <div id="canvas-container"></div>
 
     <script>
+        // إنشاء التكستشر تلقائياً برسم البكسل (Pixel-Art Engine)
+        function createPixelTexture(baseColor, noiseColor, isGrass = false) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 16; canvas.height = 16;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.fillStyle = baseColor;
+            ctx.fillRect(0, 0, 16, 16);
+
+            ctx.fillStyle = noiseColor;
+            for(let i = 0; i < 40; i++) {
+                ctx.fillRect(Math.floor(Math.random()*16), Math.floor(Math.random()*16), 1, 1);
+            }
+
+            if(isGrass) {
+                ctx.fillStyle = '#4caf50';
+                ctx.fillRect(0, 0, 16, 4);
+                for(let i=0; i<16; i+=2) {
+                    ctx.fillRect(i, 4, 1, Math.floor(Math.random()*3));
+                }
+            }
+
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.magFilter = THREE.NearestFilter;
+            tex.minFilter = THREE.NearestFilter;
+            return tex;
+        }
+
+        const textures = {
+            grass: createPixelTexture('#795548', '#5d4037', true),
+            dirt: createPixelTexture('#795548', '#5d4037'),
+            stone: createPixelTexture('#808080', '#555555'),
+            wood: createPixelTexture('#5d4037', '#3e2723'),
+            leaves: createPixelTexture('#2e7d32', '#1b5e20')
+        };
+
+        const materials = {
+            grass: new THREE.MeshLambertMaterial({ map: textures.grass }),
+            dirt: new THREE.MeshLambertMaterial({ map: textures.dirt }),
+            stone: new THREE.MeshLambertMaterial({ map: textures.stone }),
+            wood: new THREE.MeshLambertMaterial({ map: textures.wood }),
+            leaves: new THREE.MeshLambertMaterial({ map: textures.leaves })
+        };
+
         let scene, camera, renderer, raycaster;
         let keys = {};
         let yaw = 0, pitch = 0;
         let isPointerLocked = false;
         const container = document.getElementById('canvas-container');
 
-        const WORLD_SIZE = 48; // توسيع العالم
-        let blocksMap = new Map(); 
+        const CHUNK_SIZE = 16;
+        let loadedChunks = new Set();
+        let blocksMap = new Map();
         let blocksGroup = new THREE.Group();
         let mobs = [];
-        
+
         let playerVelocity = new THREE.Vector3();
-        let playerRadius = 0.3;
-        let playerHeight = 1.6;
         let clock = new THREE.Clock();
         let selectedBlockType = 'grass';
-
-        const materials = {
-            grass: new THREE.MeshLambertMaterial({ color: 0x4caf50 }),
-            dirt: new THREE.MeshLambertMaterial({ color: 0x795548 }),
-            stone: new THREE.MeshLambertMaterial({ color: 0x808080 }),
-            wood: new THREE.MeshLambertMaterial({ color: 0x5d4037 }),
-            leaves: new THREE.MeshLambertMaterial({ color: 0x2e7d32 }),
-            cow: new THREE.MeshLambertMaterial({ color: 0x8d6e63 }),
-            sheep: new THREE.MeshLambertMaterial({ color: 0xeceff1 }),
-            zombie: new THREE.MeshLambertMaterial({ color: 0x388e3c }),
-            creeper: new THREE.MeshLambertMaterial({ color: 0x00e676 })
-        };
-
         const boxGeo = new THREE.BoxGeometry(1, 1, 1);
 
         function enterGame() {
@@ -124,27 +155,26 @@
 
         function initEngine() {
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x87ceeb);
+            scene.background = new THREE.Color(0x78a7ff);
 
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
             scene.add(ambientLight);
             const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
-            dirLight.position.set(20, 40, 20);
+            dirLight.position.set(50, 100, 50);
             scene.add(dirLight);
 
             scene.add(blocksGroup);
 
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 300);
-            renderer = new THREE.WebGLRenderer({ antialias: true });
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: false });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             container.appendChild(renderer.domElement);
 
             raycaster = new THREE.Raycaster();
-            camera.position.set(WORLD_SIZE / 2, 12, WORLD_SIZE / 2);
+            camera.position.set(0, 15, 0);
 
-            const type = document.getElementById('worldType').value;
-            buildWorld(type);
+            const worldType = document.getElementById('worldType').value;
 
             document.addEventListener('pointerlockchange', () => {
                 isPointerLocked = (document.pointerLockElement === container);
@@ -194,6 +224,8 @@
                 const delta = Math.min(clock.getDelta(), 0.1);
 
                 if (isPointerLocked) {
+                    updateInfiniteWorld(worldType);
+
                     const moveDir = new THREE.Vector3();
                     const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
                     const side = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
@@ -204,29 +236,28 @@
                     if (keys['KeyA']) moveDir.add(side.clone().negate());
                     
                     moveDir.normalize();
-                    const speed = 12.0;
+                    const speed = 10.0;
 
-                    if (moveDir.lengthSq() > 0) {
-                        playerVelocity.x = moveDir.x * speed;
-                        playerVelocity.z = moveDir.z * speed;
+                    playerVelocity.x = moveDir.x * speed;
+                    playerVelocity.z = moveDir.z * speed;
+
+                    if (keys['Space'] && onGround()) {
+                        playerVelocity.y = 8.5;
                     } else {
-                        playerVelocity.x = 0;
-                        playerVelocity.z = 0;
+                        playerVelocity.y -= 22.0 * delta;
                     }
 
-                    if (keys['Space']) {
-                        playerVelocity.y = 8.0; // قفز
-                    } else {
-                        playerVelocity.y -= 20.0 * delta; // جاذبية
-                    }
+                    // حركة صلبة تمنع اخترق الجدران تماماً
+                    checkHardCollisions(playerVelocity.clone().multiplyScalar(delta));
 
-                    // حركة مع فحص الاصطدام المباشر لمنع الاختراق
-                    moveWithCollision(playerVelocity.clone().multiplyScalar(delta));
-
-                    // تحريك الـ Mobs
-                    mobs.forEach((mob, i) => {
-                        mob.position.x += Math.sin(Date.now() * 0.001 + i) * 0.01;
-                        mob.position.z += Math.cos(Date.now() * 0.001 + i) * 0.01;
+                    // تحريك أرجل وأجسام الموبات
+                    mobs.forEach(mob => {
+                        mob.position.x += Math.sin(Date.now() * 0.002 + mob.id) * 0.015;
+                        if(mob.legs) {
+                            mob.legs.forEach((leg, idx) => {
+                                leg.rotation.x = Math.sin(Date.now() * 0.008 + idx) * 0.5;
+                            });
+                        }
                     });
                 }
 
@@ -235,40 +266,41 @@
             animate();
         }
 
-        // نظام منع الاختراق عند الحركة
-        function moveWithCollision(displacement) {
-            let targetPos = camera.position.clone().add(displacement);
+        // توليد لا نهائي في كل الاتجاهات
+        function updateInfiniteWorld(worldType) {
+            const pX = Math.floor(camera.position.x / CHUNK_SIZE);
+            const pZ = Math.floor(camera.position.z / CHUNK_SIZE);
+            const radius = 2;
 
-            // فحص المحاور بالترتيب (X, Y, Z) لمنع الانحشار
-            ['x', 'y', 'z'].forEach(axis => {
-                let testPos = camera.position.clone();
-                testPos[axis] = targetPos[axis];
-
-                let minX = Math.floor(testPos.x - playerRadius);
-                let maxX = Math.floor(testPos.x + playerRadius);
-                let minY = Math.floor(testPos.y - playerHeight);
-                let maxY = Math.floor(testPos.y);
-                let minZ = Math.floor(testPos.z - playerRadius);
-                let maxZ = Math.floor(testPos.z + playerRadius);
-
-                let collided = false;
-                for (let x = minX; x <= maxX; x++) {
-                    for (let y = minY; y <= maxY; y++) {
-                        for (let z = minZ; z <= maxZ; z++) {
-                            if (blocksMap.has(`${x},${y},${z}`)) {
-                                collided = true;
-                                break;
-                            }
-                        }
+            for (let x = pX - radius; x <= pX + radius; x++) {
+                for (let z = pZ - radius; z <= pZ + radius; z++) {
+                    const key = `${x},${z}`;
+                    if (!loadedChunks.has(key)) {
+                        generateChunk(x, z, worldType);
+                        loadedChunks.add(key);
                     }
                 }
+            }
+        }
 
-                if (!collided) {
-                    camera.position[axis] = testPos[axis];
-                } else {
-                    playerVelocity[axis] = 0;
+        function generateChunk(cx, cz, worldType) {
+            for (let x = 0; x < CHUNK_SIZE; x++) {
+                for (let z = 0; z < CHUNK_SIZE; z++) {
+                    const wX = cx * CHUNK_SIZE + x;
+                    const wZ = cz * CHUNK_SIZE + z;
+                    
+                    let height = (worldType === 'flat') ? 1 : Math.floor(Math.sin(wX * 0.1) * 3 + Math.cos(wZ * 0.1) * 3 + 5);
+
+                    createBlock(wX, height, wZ, 'grass');
+                    for (let y = height - 1; y >= height - 4; y--) {
+                        createBlock(wX, y, wZ, (y === height - 1) ? 'dirt' : 'stone');
+                    }
+
+                    if (worldType !== 'flat' && Math.random() < 0.015) spawnTree(wX, height + 1, wZ);
+                    if (Math.random() < 0.005) spawnDetailedMob(wX, height + 1, wZ, 'zombie');
+                    if (Math.random() < 0.005) spawnDetailedMob(wX, height + 1, wZ, 'creeper');
                 }
-            });
+            }
         }
 
         function createBlock(x, y, z, type) {
@@ -281,26 +313,36 @@
             blocksMap.set(key, mesh);
         }
 
-        function buildWorld(type) {
-            for (let x = 0; x < WORLD_SIZE; x++) {
-                for (let z = 0; z < WORLD_SIZE; z++) {
-                    let height = (type === 'flat') ? 1 : Math.floor(Math.sin(x * 0.15) * 3 + Math.cos(z * 0.15) * 3 + 5);
+        // بناء كائنات مفصلة (رأس + جسم + أقدام)
+        function spawnDetailedMob(x, y, z, type) {
+            const mobGroup = new THREE.Group();
+            mobGroup.id = Math.random() * 1000;
+            mobGroup.legs = [];
 
-                    createBlock(x, height, z, 'grass');
+            let mainColor = (type === 'zombie') ? 0x2e7d32 : 0x00e676;
+            const mat = new THREE.MeshLambertMaterial({ color: mainColor });
 
-                    for (let y = height - 1; y >= 0; y--) {
-                        createBlock(x, y, z, (y === height - 1) ? 'dirt' : 'stone');
-                    }
+            // الرأس
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), mat);
+            head.position.y = 1.2;
+            mobGroup.add(head);
 
-                    if (type !== 'flat' && x > 3 && x < WORLD_SIZE - 3 && z > 3 && z < WORLD_SIZE - 3) {
-                        if (Math.random() < 0.02) spawnTree(x, height + 1, z);
-                        if (Math.random() < 0.008) spawnMob(x, height + 1, z, 'cow');
-                        if (Math.random() < 0.008) spawnMob(x, height + 1, z, 'sheep');
-                        if (Math.random() < 0.008) spawnMob(x, height + 1, z, 'zombie');
-                        if (Math.random() < 0.008) spawnMob(x, height + 1, z, 'creeper');
-                    }
-                }
+            // الجسم
+            const body = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.7, 0.3), mat);
+            body.position.y = 0.6;
+            mobGroup.add(body);
+
+            // الأرجل
+            for(let i=0; i<2; i++) {
+                const leg = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.5, 0.2), mat);
+                leg.position.set((i === 0 ? -0.15 : 0.15), 0.1, 0);
+                mobGroup.add(leg);
+                mobGroup.legs.push(leg);
             }
+
+            mobGroup.position.set(x, y, z);
+            scene.add(mobGroup);
+            mobs.push(mobGroup);
         }
 
         function spawnTree(x, y, z) {
@@ -312,25 +354,35 @@
             }
         }
 
-        function spawnMob(x, y, z, type) {
-            const mobGroup = new THREE.Group();
-            let bodyGeo;
+        // فحص أرضية اللاعب للقفز
+        function onGround() {
+            const p = camera.position;
+            return blocksMap.has(`${Math.floor(p.x)},${Math.floor(p.y - 1.6)},${Math.floor(p.z)}`);
+        }
 
-            if (type === 'cow' || type === 'sheep') {
-                bodyGeo = new THREE.BoxGeometry(0.8, 0.7, 1.2);
-            } else if (type === 'zombie') {
-                bodyGeo = new THREE.BoxGeometry(0.6, 1.5, 0.5);
-            } else if (type === 'creeper') {
-                bodyGeo = new THREE.BoxGeometry(0.5, 1.4, 0.5);
-            }
+        // نظام منع اختراق البلوكات القوي
+        function checkHardCollisions(disp) {
+            let p = camera.position;
+            let radius = 0.3;
 
-            const mobMesh = new THREE.Mesh(bodyGeo, materials[type]);
-            mobMesh.position.y = 0.7;
-            mobGroup.add(mobMesh);
+            ['x', 'y', 'z'].forEach(axis => {
+                p[axis] += disp[axis];
+                let minX = Math.floor(p.x - radius), maxX = Math.floor(p.x + radius);
+                let minY = Math.floor(p.y - 1.5), maxY = Math.floor(p.y + 0.2);
+                let minZ = Math.floor(p.z - radius), maxZ = Math.floor(p.z + radius);
 
-            mobGroup.position.set(x, y, z);
-            scene.add(mobGroup);
-            mobs.push(mobGroup);
+                for (let x = minX; x <= maxX; x++) {
+                    for (let y = minY; y <= maxY; y++) {
+                        for (let z = minZ; z <= maxZ; z++) {
+                            if (blocksMap.has(`${x},${y},${z}`)) {
+                                p[axis] -= disp[axis];
+                                if(axis === 'y') playerVelocity.y = 0;
+                                return;
+                            }
+                        }
+                    }
+                }
+            });
         }
 
         function selectSlot(num, type) {
