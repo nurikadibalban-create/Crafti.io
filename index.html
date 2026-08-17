@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crafti.io 3D</title>
+    <title>Crafti.io</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
@@ -13,42 +13,71 @@
         #crosshair {
             position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            color: white; font-size: 24px; pointer-events: none; z-index: 10;
+            color: #fff; font-size: 28px; pointer-events: none; z-index: 10;
         }
 
         #ui-overlay {
-            position: fixed; top: 10px; left: 10px;
-            color: white; background: rgba(0,0,0,0.6);
-            padding: 10px; border-radius: 8px; z-index: 10; font-size: 14px;
+            position: fixed; top: 15px; left: 15px;
+            color: white; background: rgba(0,0,0,0.7);
+            padding: 12px; border-radius: 8px; z-index: 10; font-size: 13px;
+            border: 2px solid #fff; line-height: 1.6;
         }
 
-        #click-notice {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); color: white;
-            display: flex; justify-content: center; align-items: center;
-            font-size: 24px; z-index: 20; cursor: pointer;
+        #inventory {
+            display: none; position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); width: 300px;
+            background: rgba(20, 20, 20, 0.95); border: 3px solid #fff;
+            border-radius: 10px; padding: 15px; color: #fff; z-index: 20;
+        }
+
+        .inv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+        .inv-item {
+            height: 45px; background: #333; border: 2px solid #666;
+            border-radius: 6px; display: flex; align-items: center;
+            justify-content: center; cursor: pointer; font-size: 12px;
+        }
+        .inv-item:hover { border-color: #ffeb00; }
+
+        .exit-btn {
+            position: fixed; top: 15px; right: 15px; z-index: 10;
+            padding: 8px 16px; background: #ff4d4d; color: white;
+            border: 2px solid #fff; border-radius: 6px; font-weight: bold; cursor: pointer;
         }
     </style>
 </head>
 <body>
 
-    <div id="click-notice">اضغط في أي مكان على الشاشة لبدء التحكم 3D</div>
+    <button class="exit-btn" onclick="location.reload()">Exit World</button>
     <div id="crosshair">+</div>
+
     <div id="ui-overlay">
-        <b>التحكم 3D:</b><br>
-        W A S D : المشي<br>
+        <b>أزرار التحكم:</b><br>
+        W / A / S / D : المشي<br>
         Space : القفز<br>
-        Shift : السرعة<br>
-        الماوس : تدوير الكاميرا
+        Left Click : تكسير بلوكة<br>
+        Right Click : وضع بلوكة<br>
+        E : الشنطة<br>
+        P : إيقاف / إطلاق الماوس
+    </div>
+
+    <div id="inventory">
+        <h3 style="text-align:center;">INVENTORY (الشنطة)</h3>
+        <div class="inv-grid">
+            <div class="inv-item" onclick="selectColor(0x8b5a2b)">Dirt</div>
+            <div class="inv-item" onclick="selectColor(0x55aa55)">Grass</div>
+            <div class="inv-item" onclick="selectColor(0x808080)">Stone</div>
+            <div class="inv-item" onclick="selectColor(0xa52a2a)">Wood</div>
+            <div class="inv-item" onclick="selectColor(0xff0000)">Red</div>
+            <div class="inv-item" onclick="selectColor(0x0000ff)">Blue</div>
+        </div>
     </div>
 
     <div id="canvas-container"></div>
 
     <script>
         const container = document.getElementById('canvas-container');
-        const notice = document.getElementById('click-notice');
+        const invModal = document.getElementById('inventory');
 
-        // إنشاء المشهد 3D
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x87ceeb);
 
@@ -57,88 +86,137 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         container.appendChild(renderer.domElement);
 
-        // الإضاءة
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        const raycaster = new THREE.Raycaster();
+        let blocks = [];
+        let selectedColor = 0x8b5a2b;
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
         scene.add(ambientLight);
         const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        dirLight.position.set(20, 40, 20);
+        dirLight.position.set(10, 20, 10);
         scene.add(dirLight);
 
         // الأرضية
-        const floorGeo = new THREE.PlaneGeometry(200, 200);
-        const floorMat = new THREE.MeshLambertMaterial({ color: 0x4682b4 });
+        const floorGeo = new THREE.PlaneGeometry(100, 100);
+        const floorMat = new THREE.MeshLambertMaterial({ color: 0x55aa55 });
         const floor = new THREE.Mesh(floorGeo, floorMat);
         floor.rotation.x = -Math.PI / 2;
         scene.add(floor);
 
-        // إضافة عالم من البلوكات 3D
+        // بلوكات البداية
         const boxGeo = new THREE.BoxGeometry(1, 1, 1);
-        const boxMat = new THREE.MeshLambertMaterial({ color: 0x8b5a2b });
-
-        for(let x = -10; x < 10; x += 2) {
-            for(let z = -10; z < 10; z += 2) {
+        for(let x = -8; x <= 8; x += 2) {
+            for(let z = -8; z <= 8; z += 2) {
+                const boxMat = new THREE.MeshLambertMaterial({ color: 0x8b5a2b });
                 const cube = new THREE.Mesh(boxGeo, boxMat);
                 cube.position.set(x, 0.5, z);
                 scene.add(cube);
+                blocks.push(cube);
             }
         }
 
-        // موقع الكاميرا الابتدائي
-        camera.position.set(0, 2, 5);
+        camera.position.set(0, 3, 6);
 
-        // متغيرات الحركة
         let keys = {};
         let yaw = 0, pitch = 0;
-        let isLocked = false;
+        let isPointerLocked = false;
 
-        // قفل الماوس للتحكم الكلي 3D
-        notice.addEventListener('click', () => {
-            document.body.requestPointerLock();
-        });
-
-        document.addEventListener('pointerlockchange', () => {
-            if (document.pointerLockElement === document.body) {
-                isLocked = true;
-                notice.style.display = 'none';
-            } else {
-                isLocked = false;
-                notice.style.display = 'flex';
+        container.addEventListener('click', () => {
+            if (invModal.style.display !== 'block') {
+                container.requestPointerLock();
             }
         });
 
+        document.addEventListener('pointerlockchange', () => {
+            isPointerLocked = (document.pointerLockElement === container);
+        });
+
         document.addEventListener('mousemove', (e) => {
-            if (!isLocked) return;
-            yaw -= e.movementX * 0.002;
-            pitch -= e.movementY * 0.002;
-            pitch = Math.max(-Math.PI / 2 + 0.1, Math.min(Math.PI / 2 - 0.1, pitch));
+            if (!isPointerLocked) return;
+            yaw -= e.movementX * 0.0025;
+            pitch -= e.movementY * 0.0025;
+            pitch = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, pitch));
 
             camera.rotation.order = "YXZ";
             camera.rotation.y = yaw;
             camera.rotation.x = pitch;
         });
 
-        document.addEventListener('keydown', (e) => keys[e.code] = true);
-        document.addEventListener('keyup', (e) => keys[e.code] = false);
+        document.addEventListener('keydown', (e) => {
+            keys[e.code] = true;
+            
+            // زر E لفتح الشنطة
+            if (e.code === 'KeyE') {
+                if (invModal.style.display === 'block') {
+                    invModal.style.display = 'none';
+                    container.requestPointerLock();
+                } else {
+                    invModal.style.display = 'block';
+                    document.exitPointerLock();
+                }
+            }
 
-        // حلقة التحديث
+            // زر P لإيقاف/فتح قفل الماوس
+            if (e.code === 'KeyP') {
+                if (isPointerLocked) document.exitPointerLock();
+                else container.requestPointerLock();
+            }
+        });
+
+        document.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+        // الضغط بالماوس للبناء والتكسير
+        window.addEventListener('mousedown', (e) => {
+            if (!isPointerLocked) return;
+
+            raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+            const intersects = raycaster.intersectObjects([...blocks, floor]);
+
+            if (intersects.length > 0) {
+                const hit = intersects[0];
+
+                // Left Click: تكسير
+                if (e.button === 0 && hit.object !== floor) {
+                    scene.remove(hit.object);
+                    blocks = blocks.filter(b => b !== hit.object);
+                } 
+                // Right Click: بناء
+                else if (e.button === 2) {
+                    const newCube = new THREE.Mesh(boxGeo, new THREE.MeshLambertMaterial({ color: selectedColor }));
+                    const pos = hit.point.add(hit.face.normal.clone().multiplyScalar(0.5));
+                    newCube.position.set(Math.floor(pos.x) + 0.5, Math.floor(pos.y) + 0.5, Math.floor(pos.z) + 0.5);
+                    scene.add(newCube);
+                    blocks.push(newCube);
+                }
+            }
+        });
+
+        window.addEventListener('contextmenu', e => e.preventDefault());
+
+        function selectColor(colorHex) {
+            selectedColor = colorHex;
+            invModal.style.display = 'none';
+            container.requestPointerLock();
+        }
+
         function animate() {
             requestAnimationFrame(animate);
 
-            if (isLocked) {
-                const speed = keys['ShiftLeft'] ? 0.2 : 0.1;
-                const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+            if (isPointerLocked) {
+                const speed = 0.12;
+                const dir = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
                 const side = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
 
-                if (keys['KeyW']) camera.position.addScaledVector(forward, speed);
-                if (keys['KeyS']) camera.position.addScaledVector(forward, -speed);
+                if (keys['KeyW']) camera.position.addScaledVector(dir, speed);
+                if (keys['KeyS']) camera.position.addScaledVector(dir, -speed);
                 if (keys['KeyD']) camera.position.addScaledVector(side, speed);
                 if (keys['KeyA']) camera.position.addScaledVector(side, -speed);
                 if (keys['Space']) camera.position.y += speed;
-                if (keys['KeyC']) camera.position.y -= speed;
             }
 
             renderer.render(scene, camera);
         }
+
         animate();
 
         window.addEventListener('resize', () => {
