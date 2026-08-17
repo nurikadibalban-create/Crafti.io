@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crafti.io - True Infinite World</title>
+    <title>Crafti.io - World Generation Upgrade</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; user-select: none; }
@@ -55,13 +55,13 @@
 <body>
 
     <div id="lobbyScreen">
-        <h1 class="lobby-title">Crafti.io (Infinite World)</h1>
+        <h1 class="lobby-title">Crafti.io (Trees & Mobs)</h1>
         <div class="menu-card">
             <div class="field-group">
                 <label>نوع العالم (World Type):</label>
                 <select id="worldType" class="select-box">
+                    <option value="infinite_terrain">Infinite Terrain (عالم مع أشجار وكهوف)</option>
                     <option value="infinite_flat">Flat (مسطح لا نهائي)</option>
-                    <option value="infinite_terrain">Infinite Terrain (تضاريس لا نهائية)</option>
                 </select>
             </div>
 
@@ -82,7 +82,7 @@
 
     <div id="ui-overlay">
         <b>التحكم:</b> WASD تحرك | Space صعود | C نزول<br>
-        E: فتح الشنطة (1000 بلوك) | Mode: <span id="modeDisplay" style="color:#00e5ff;"></span>
+        E: فتح الشنطة | Mode: <span id="modeDisplay" style="color:#00e5ff;"></span>
     </div>
 
     <div id="inventory">
@@ -97,7 +97,7 @@
 
     <script>
         const all1000Blocks = [];
-        const baseNames = ['Grass', 'Dirt', 'Stone', 'Cobble', 'Plank', 'Brick', 'Diamond', 'Gold', 'Iron', 'Coal', 'Emerald', 'Lapis', 'Redstone', 'Obsidian', 'Glass', 'Wool', 'Concrete', 'Terracotta', 'Sand', 'Gravel'];
+        const baseNames = ['Grass', 'Dirt', 'Stone', 'Wood', 'Leaves', 'Cobble', 'Plank', 'Brick', 'Diamond', 'Gold', 'Iron', 'Coal'];
 
         for (let i = 1; i <= 1000; i++) {
             const baseIndex = (i - 1) % baseNames.length;
@@ -139,13 +139,15 @@
         let scene, camera, renderer, raycaster;
         let loadedChunks = {};
         let activeBlocks = [];
+        let blockPositions = new Set();
+        let mobs = [];
         let keys = {};
         let yaw = 0, pitch = 0;
         let isPointerLocked = false;
         const container = document.getElementById('canvas-container');
 
         const CHUNK_SIZE = 16;
-        const RENDER_DISTANCE = 4; // توسيع مدى التوليد بشكل كبير حول اللاعب
+        const RENDER_DISTANCE = 3;
 
         function enterGame() {
             const worldType = document.getElementById('worldType').value;
@@ -173,9 +175,8 @@
             raycaster = new THREE.Raycaster();
             scene.add(new THREE.AmbientLight(0xffffff, 1.1));
 
-            camera.position.set(0, 10, 0);
+            camera.position.set(0, 12, 0);
 
-            // دالة توليد الأجزاء (Chunks) المستمرة مع حركة اللاعب
             function updateWorldChunks() {
                 const pX = Math.floor(camera.position.x / CHUNK_SIZE);
                 const pZ = Math.floor(camera.position.z / CHUNK_SIZE);
@@ -192,8 +193,6 @@
             }
 
             function generateChunk(cx, cz, type) {
-                const instancedGeo = new THREE.BoxGeometry(1, 1, 1);
-                
                 for (let x = 0; x < CHUNK_SIZE; x++) {
                     for (let z = 0; z < CHUNK_SIZE; z++) {
                         const wX = cx * CHUNK_SIZE + x;
@@ -201,20 +200,60 @@
                         
                         if (type === 'infinite_flat') {
                             addBlockMesh(wX, 0, wZ, all1000Blocks[0]);
-                            addBlockMesh(wX, -1, wZ, all1000Blocks[1]);
-                            addBlockMesh(wX, -2, wZ, all1000Blocks[2]);
                         } else {
-                            // معادلة تضاريس ممتدة ومستمرة بدون انقطاع
                             let height = Math.floor(Math.sin(wX * 0.08) * Math.cos(wZ * 0.08) * 6 + Math.sin(wX * 0.03) * 4);
                             
-                            addBlockMesh(wX, height, wZ, all1000Blocks[0]); // العشب في الأعلى
-                            for (let h = height - 1; h >= height - 3; h--) {
-                                addBlockMesh(wX, h, wZ, all1000Blocks[1]); // الطين
+                            addBlockMesh(wX, height, wZ, all1000Blocks[0]); // عشب
+                            
+                            // توليد طبقات الأرض مع إيجاد ثقوب للكهوف
+                            for (let h = height - 1; h >= height - 6; h--) {
+                                const caveNoise = Math.sin(wX * 0.3) + Math.cos(h * 0.3) + Math.sin(wZ * 0.3);
+                                if (caveNoise < 1.2) { // حفر الكهف إذا كانت القيمة مناسبة
+                                    addBlockMesh(wX, h, wZ, h === height - 1 ? all1000Blocks[1] : all1000Blocks[2]);
+                                }
                             }
-                            addBlockMesh(wX, height - 4, wZ, all1000Blocks[2]); // الحجر
+
+                            // توليد الأشجار عشوائياً
+                            if (Math.random() < 0.015) {
+                                createTree(wX, height + 1, wZ);
+                            }
+
+                            // توليد الحيوانات عشوائياً
+                            if (Math.random() < 0.005) {
+                                createMob(wX, height + 1, wZ);
+                            }
                         }
                     }
                 }
+            }
+
+            function createTree(x, y, z) {
+                // جذع الشجرة
+                for (let i = 0; i < 4; i++) {
+                    addBlockMesh(x, y + i, z, all1000Blocks[3]);
+                }
+                // أوراق الشجرة
+                for (let lx = -1; lx <= 1; lx++) {
+                    for (let lz = -1; lz <= 1; lz++) {
+                        for (let ly = 2; ly <= 4; ly++) {
+                            if (lx === 0 && lz === 0 && ly < 4) continue;
+                            addBlockMesh(x + lx, y + ly, z + lz, all1000Blocks[4]);
+                        }
+                    }
+                }
+            }
+
+            function createMob(x, y, z) {
+                const mobGroup = new THREE.Group();
+                const bodyGeo = new THREE.BoxGeometry(0.8, 0.8, 1.2);
+                const bodyMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+                const body = new THREE.Mesh(bodyGeo, bodyMat);
+                body.position.y = 0.6;
+                mobGroup.add(body);
+
+                mobGroup.position.set(x, y, z);
+                scene.add(mobGroup);
+                mobs.push(mobGroup);
             }
 
             function addBlockMesh(x, y, z, block) {
@@ -224,6 +263,14 @@
                 mesh.position.set(x, y, z);
                 scene.add(mesh);
                 activeBlocks.push(mesh);
+                blockPositions.add(`${x},${y},${z}`);
+            }
+
+            function isSolidBlock(pos) {
+                const bX = Math.round(pos.x);
+                const bY = Math.round(pos.y);
+                const bZ = Math.round(pos.z);
+                return blockPositions.has(`${bX},${bY},${bZ}`);
             }
 
             document.addEventListener('pointerlockchange', () => {
@@ -266,6 +313,7 @@
                     if (e.button === 0) {
                         scene.remove(hit.object);
                         activeBlocks = activeBlocks.filter(b => b !== hit.object);
+                        blockPositions.delete(`${Math.round(hit.object.position.x)},${Math.round(hit.object.position.y)},${Math.round(hit.object.position.z)}`);
                     } else if (e.button === 2) {
                         const pos = hit.point.add(hit.face.normal.clone().multiplyScalar(0.5));
                         addBlockMesh(Math.round(pos.x), Math.round(pos.y), Math.round(pos.z), selectedBlock);
@@ -282,14 +330,25 @@
                     const dir = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
                     const side = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
 
-                    if (keys['KeyW']) camera.position.addScaledVector(dir, speed);
-                    if (keys['KeyS']) camera.position.addScaledVector(dir, -speed);
-                    if (keys['KeyD']) camera.position.addScaledVector(side, speed);
-                    if (keys['KeyA']) camera.position.addScaledVector(side, -speed);
-                    if (keys['Space']) camera.position.y += speed;
-                    if (keys['KeyC']) camera.position.y -= speed;
+                    let nextPos = camera.position.clone();
 
-                    // تحديث توليد الأجزاء باستمرار
+                    if (keys['KeyW']) nextPos.addScaledVector(dir, speed);
+                    if (keys['KeyS']) nextPos.addScaledVector(dir, -speed);
+                    if (keys['KeyD']) nextPos.addScaledVector(side, speed);
+                    if (keys['KeyA']) nextPos.addScaledVector(side, -speed);
+                    if (keys['Space']) nextPos.y += speed;
+                    if (keys['KeyC']) nextPos.y -= speed;
+
+                    if (!isSolidBlock(nextPos)) {
+                        camera.position.copy(nextPos);
+                    }
+
+                    // تحريك الحيوانات بشكل بسيط
+                    mobs.forEach(mob => {
+                        mob.position.x += (Math.random() - 0.5) * 0.02;
+                        mob.position.z += (Math.random() - 0.5) * 0.02;
+                    });
+
                     updateWorldChunks();
                 }
                 renderer.render(scene, camera);
