@@ -9,321 +9,154 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial Black', Gadget, sans-serif; }
 
         body {
-            background: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1000&auto=format&fit=crop') no-repeat center center fixed;
-            background-size: cover;
+            background: #000;
             height: 100vh;
-            display: flex;
             overflow: hidden;
             user-select: none;
         }
 
-        .sidebar {
-            width: 240px;
-            background: rgba(218, 142, 172, 0.85);
-            border-right: 4px solid #000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-top: 15px;
-            position: relative;
-            z-index: 10;
-        }
-
-        .sidebar-title {
-            color: #fff;
-            font-size: 38px;
-            text-shadow: 3px 3px 0px #000, -2px -2px 0px #000, 2px -2px 0px #000, -2px 2px 0px #000;
-            margin-bottom: 15px;
-        }
-
-        .btn-grey {
-            width: 85%;
-            padding: 10px;
-            margin: 6px 0;
-            background: #cccccc;
-            border: 3px solid #000;
-            border-radius: 12px;
-            font-size: 20px;
-            color: #000;
-            cursor: pointer;
-            text-align: center;
-            box-shadow: inset -2px -2px 0px #888, inset 2px 2px 0px #fff;
-            transition: transform 0.1s;
-        }
-        .btn-grey:active { transform: scale(0.95); }
-
-        .character-container {
-            position: absolute;
-            bottom: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .main-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-
-        .logo {
-            font-size: 90px;
-            color: #80ffff;
-            text-shadow: 5px 5px 0px #000, -3px -3px 0px #000, 3px -3px 0px #000, -3px 3px 0px #000;
-            margin-bottom: 25px;
-        }
-
-        .badge-new {
-            position: absolute;
-            top: 20%;
-            right: 12%;
-            background: #ff0000;
-            color: #fff;
-            padding: 8px 18px;
-            font-size: 18px;
-            transform: rotate(22deg);
-            border: 3px solid #000;
-            box-shadow: 3px 3px 0px #000;
-            text-align: center;
-            line-height: 1.1;
-        }
-
-        .main-btn {
-            width: 300px;
-            padding: 10px;
-            margin: 8px 0;
-            background: #cccccc;
-            border: 3px solid #000;
-            border-radius: 18px;
-            font-size: 22px;
-            color: #000;
-            text-align: center;
-            cursor: pointer;
-            box-shadow: inset -3px -3px 0px #888, inset 3px 3px 0px #fff;
-            transition: transform 0.1s;
-        }
-        .main-btn:active { transform: scale(0.95); }
-        .main-btn small { display: block; font-size: 16px; font-weight: normal; }
-
-        .screen-overlay {
-            display: none;
+        /* واجهة اللعبة العلوية والسفلية (MineFun Style) */
+        #crosshair {
             position: fixed;
+            top: 50%; left: 50%;
+            width: 14px; height: 14px;
+            transform: translate(-50%, -50%);
+            color: #fff; font-size: 24px;
+            pointer-events: none; z-index: 600;
+            display: none; justify-content: center; align-items: center;
+        }
+
+        #hotbar {
+            position: fixed;
+            bottom: 15px; left: 50%;
+            transform: translateX(-50%);
+            display: none; gap: 6px;
+            background: rgba(0,0,0,0.6);
+            padding: 6px; border-radius: 8px;
+            border: 2px solid #fff; z-index: 600;
+        }
+
+        .hotbar-slot {
+            width: 45px; height: 45px;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid #888;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; color: #fff;
+        }
+        .hotbar-slot.active { border-color: #ffeb00; background: rgba(255,255,255,0.4); }
+
+        #inventoryModal {
+            display: none; position: fixed;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 350px; background: rgba(20,20,20,0.95);
+            border: 4px solid #fff; border-radius: 12px;
+            padding: 15px; color: #fff; z-index: 700;
+        }
+
+        .inv-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px;
+        }
+
+        .inv-item {
+            height: 50px; background: #333; border: 2px solid #666;
+            border-radius: 6px; display: flex; align-items: center;
+            justify-content: center; cursor: pointer; font-size: 14px;
+        }
+        .inv-item:hover { border-color: #ffeb00; }
+
+        #instructions {
+            position: fixed; top: 15px; right: 15px;
+            background: rgba(0,0,0,0.7); color: #fff;
+            padding: 10px; border-radius: 8px; font-size: 12px;
+            display: none; z-index: 600; line-height: 1.5;
+        }
+
+        /* واجهة القوائم */
+        .screen-overlay {
+            display: flex; position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
             background: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1000&auto=format&fit=crop') center/cover;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            flex-direction: column; align-items: center; justify-content: center;
             z-index: 100;
         }
 
-        .top-bar-black {
-            position: absolute;
-            top: 0; width: 100%;
-            background: #000; color: #fff;
-            text-align: center; padding: 12px 0; font-size: 32px;
-        }
-
-        .worlds-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-height: 220px;
-            overflow-y: auto;
-            width: 100%;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        /* نافذة إنشاء العالم المحدثة */
-        .modal-box {
-            background: rgba(0, 0, 0, 0.9);
-            border: 4px solid #fff;
-            border-radius: 15px;
-            padding: 25px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            color: #fff;
-            width: 320px;
-        }
-
-        .modal-input {
-            width: 100%;
-            padding: 10px;
-            font-size: 18px;
-            border-radius: 8px;
-            border: 2px solid #555;
-            text-align: center;
-            outline: none;
-        }
-
-        .mode-select-btn {
-            width: 100%;
-            padding: 8px;
-            background: #444;
-            color: #fff;
-            border: 2px solid #aaa;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            text-align: center;
-        }
-
-        #gameCanvas {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            z-index: 500;
-        }
-
-        #gameUI {
-            display: none;
-            position: fixed;
-            top: 20px; left: 20px;
-            z-index: 501;
+        .main-btn {
+            width: 260px; padding: 10px; margin: 8px 0;
+            background: #cccccc; border: 3px solid #000;
+            border-radius: 14px; font-size: 20px; color: #000;
+            text-align: center; cursor: pointer;
+            box-shadow: inset -3px -3px 0px #888, inset 3px 3px 0px #fff;
         }
     </style>
 </head>
 <body>
 
-    <div id="uiContainer" style="display: flex; width: 100vw; height: 100vh;">
-        <div class="sidebar">
-            <div class="sidebar-title">MENU</div>
-            <div class="btn-grey" onclick="showScreen('shopScreen')">shop</div>
-            <div class="btn-grey" onclick="showScreen('dressingScreen')">Dressing room</div>
-            
-            <div class="character-container">
-                <canvas id="skinCanvas" width="160" height="220"></canvas>
-            </div>
-        </div>
-
-        <div class="main-area">
-            <div class="badge-new">The new<br>game</div>
-            <div class="logo">Crafti.io</div>
-
-            <div class="main-btn" onclick="showScreen('singleScreen')">
-                singleplayer
-                <small>(offline)</small>
-            </div>
-            <div class="main-btn" onclick="showScreen('multiScreen')">
-                Multiplayer
-                <small>(online)</small>
-            </div>
-            <div class="main-btn">
-                version
-                <small>(26. 0)</small>
-            </div>
-        </div>
+    <!-- الشاشة الرئيسية -->
+    <div id="menuScreen" class="screen-overlay">
+        <h1 style="font-size:70px; color:#80ffff; text-shadow:4px 4px #000; margin-bottom:20px;">Crafti.io</h1>
+        <div class="main-btn" onclick="startGame()">Play Game</div>
     </div>
 
-    <!-- نافذة Singleplayer -->
-    <div id="singleScreen" class="screen-overlay">
-        <div class="top-bar-black">singleplayer</div>
-        
-        <div class="worlds-list" id="worldsContainer">
-            <div class="main-btn" style="width:260px;" onclick="enterWorld('My World', 'Survival')">My World <small style="font-size:12px; color:#555;">(Survival)</small></div>
-        </div>
+    <!-- أداة التنشير والتحكم -->
+    <div id="crosshair">+</div>
+    
+    <div id="instructions">
+        <b>التحكم:</b><br>
+        W, A, S, D : الحركة<br>
+        Space : النط / الطيران<br>
+        Shift : النزول للأسفل<br>
+        E : فتح / إغلاق الشنطة<br>
+        الماوس الأيسر : تكسير بلوكة<br>
+        الماوس الأيمن : وضع بلوكة
+    </div>
 
-        <div style="display:flex; gap:20px; margin-top:10px;">
-            <div class="main-btn" style="width:140px; background:#e74c3c; color:#fff;" onclick="hideScreens()">Cancel</div>
-            <div class="main-btn" style="width:260px;" onclick="openCreateModal()">create a new world</div>
+    <!-- شريط الأدوات السريع -->
+    <div id="hotbar">
+        <div class="hotbar-slot active" onclick="selectBlock(0x8b5a2b)">Dirt</div>
+        <div class="hotbar-slot" onclick="selectBlock(0x55aa55)">Grass</div>
+        <div class="hotbar-slot" onclick="selectBlock(0x808080)">Stone</div>
+        <div class="hotbar-slot" onclick="selectBlock(0xa52a2a)">Wood</div>
+    </div>
+
+    <!-- الشنطة Inventory -->
+    <div id="inventoryModal">
+        <h3 style="text-align:center;">INVENTORY (الشنطة)</h3>
+        <div class="inv-grid">
+            <div class="inv-item" onclick="selectBlock(0x8b5a2b); toggleInventory();">Dirt</div>
+            <div class="inv-item" onclick="selectBlock(0x55aa55); toggleInventory();">Grass</div>
+            <div class="inv-item" onclick="selectBlock(0x808080); toggleInventory();">Stone</div>
+            <div class="inv-item" onclick="selectBlock(0xa52a2a); toggleInventory();">Wood</div>
+            <div class="inv-item" onclick="selectBlock(0xff0000); toggleInventory();">Red</div>
+            <div class="inv-item" onclick="selectBlock(0x0000ff); toggleInventory();">Blue</div>
         </div>
     </div>
 
-    <!-- نافذة تصميم وإضافة اختيار الأنماط -->
-    <div id="createModal" class="screen-overlay" style="display: flex;">
-        <div class="modal-box">
-            <h2 style="font-size:22px;">CREATE NEW WORLD</h2>
-            <input type="text" id="worldNameInput" class="modal-input" placeholder="World Name..." value="New World">
-            
-            <!-- أزرار تبديل النمط -->
-            <div class="mode-select-btn" id="modeBtn" onclick="toggleMode()">Game Mode: Survival</div>
-
-            <div style="display:flex; gap:10px; width:100%; margin-top:5px;">
-                <div class="main-btn" style="width:50%; background:#e74c3c; color:#fff; font-size:18px;" onclick="showScreen('singleScreen')">Cancel</div>
-                <div class="main-btn" style="width:50%; background:#2ecc71; color:#fff; font-size:18px;" onclick="confirmCreateWorld()">Create</div>
-            </div>
-        </div>
-    </div>
-
-    <div id="multiScreen" class="screen-overlay">
-        <div class="logo" style="font-size:45px; margin-bottom:10px;">MULTIPLAYER</div>
-        <div class="main-btn" style="width:200px; background:#e74c3c; color:#fff;" onclick="hideScreens()">CANCEL</div>
-    </div>
-
-    <div id="shopScreen" class="screen-overlay">
-        <div class="logo">SHOP</div>
-        <div class="main-btn" style="width:180px;" onclick="hideScreens()">Back</div>
-    </div>
-
-    <div id="dressingScreen" class="screen-overlay">
-        <div class="logo">DRESSING ROOM</div>
-        <div class="main-btn" style="width:180px;" onclick="hideScreens()">Back</div>
-    </div>
-
-    <div id="gameUI">
-        <div class="main-btn" style="width:140px; background:#e74c3c; color:#fff; padding:6px; font-size:16px;" onclick="exitWorld()">Exit World</div>
-    </div>
-
-    <canvas id="gameCanvas"></canvas>
+    <canvas id="gameCanvas" style="display:none;"></canvas>
 
     <script>
-        let selectedMode = 'Survival';
-        const modes = ['Survival', 'Creative', 'Hardcore'];
-        let modeIndex = 0;
+        let scene, camera, renderer;
+        let selectedColor = 0x8b5a2b;
+        let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false, moveUp = false, moveDown = false;
+        let isInventoryOpen = false;
 
-        function toggleMode() {
-            modeIndex = (modeIndex + 1) % modes.length;
-            selectedMode = modes[modeIndex];
-            document.getElementById('modeBtn').innerText = 'Game Mode: ' + selectedMode;
-        }
-
-        function showScreen(id) {
-            hideScreens();
-            document.getElementById(id).style.display = 'flex';
-        }
-
-        function hideScreens() {
-            document.querySelectorAll('.screen-overlay').forEach(s => s.style.display = 'none');
-        }
-
-        function openCreateModal() {
-            hideScreens();
-            document.getElementById('createModal').style.display = 'flex';
-        }
-
-        function confirmCreateWorld() {
-            const name = document.getElementById('worldNameInput').value.trim() || "New World";
-            const container = document.getElementById('worldsContainer');
-            
-            const newBtn = document.createElement('div');
-            newBtn.className = 'main-btn';
-            newBtn.style.width = '260px';
-            newBtn.innerHTML = name + ' <small style="font-size:12px; color:#555;">(' + selectedMode + ')</small>';
-            newBtn.onclick = function() { enterWorld(name, selectedMode); };
-            
-            container.appendChild(newBtn);
-            showScreen('singleScreen');
-        }
-
-        let scene, camera, renderer, animationFrameId;
-
-        function enterWorld(worldName, mode) {
-            hideScreens();
-            document.getElementById('uiContainer').style.display = 'none';
+        function startGame() {
+            document.getElementById('menuScreen').style.display = 'none';
             document.getElementById('gameCanvas').style.display = 'block';
-            document.getElementById('gameUI').style.display = 'block';
+            document.getElementById('crosshair').style.display = 'flex';
+            document.getElementById('hotbar').style.display = 'flex';
+            document.getElementById('instructions').style.display = 'block';
 
+            init3D();
+        }
+
+        function init3D() {
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(mode === 'Hardcore' ? 0x221111 : 0x87ceeb);
+            scene.background = new THREE.Color(0x87ceeb);
 
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 5, 10);
+            camera.position.set(0, 3, 8);
 
             const canvas = document.getElementById('gameCanvas');
             renderer = new THREE.WebGLRenderer({ canvas: canvas });
@@ -332,82 +165,71 @@
             const light = new THREE.DirectionalLight(0xffffff, 1);
             light.position.set(10, 20, 10).normalize();
             scene.add(light);
-            scene.add(new THREE.AmbientLight(0x666666));
+            scene.add(new THREE.AmbientLight(0x777777));
 
+            // أرضية العالم
             const floorGeo = new THREE.PlaneGeometry(100, 100);
-            const floorMat = new THREE.MeshLambertMaterial({ color: mode === 'Creative' ? 0x44aa88 : 0x55aa55 });
+            const floorMat = new THREE.MeshLambertMaterial({ color: 0x55aa55 });
             const floor = new THREE.Mesh(floorGeo, floorMat);
             floor.rotation.x = -Math.PI / 2;
             scene.add(floor);
 
+            // إضافة بعض البلوكات الافتراضية
             const blockGeo = new THREE.BoxGeometry(1, 1, 1);
-            const blockMat = new THREE.MeshLambertMaterial({ color: 0x8b5a2b });
-
-            for(let i = -10; i <= 10; i += 2) {
-                for(let j = -10; j <= 10; j += 2) {
-                    if(Math.random() > 0.6) {
-                        const block = new THREE.Mesh(blockGeo, blockMat);
-                        block.position.set(i, 0.5, j);
-                        scene.add(block);
-                    }
+            for(let x = -5; x <= 5; x += 2) {
+                for(let z = -5; z <= 5; z += 2) {
+                    const blockMat = new THREE.MeshLambertMaterial({ color: 0x8b5a2b });
+                    const block = new THREE.Mesh(blockGeo, blockMat);
+                    block.position.set(x, 0.5, z);
+                    scene.add(block);
                 }
             }
 
-            let angle = 0;
+            // التحكم بلوحة المفاتيح
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'KeyW') moveForward = true;
+                if (e.code === 'KeyS') moveBackward = true;
+                if (e.code === 'KeyA') moveLeft = true;
+                if (e.code === 'KeyD') moveRight = true;
+                if (e.code === 'Space') moveUp = true;
+                if (e.code === 'ShiftLeft') moveDown = true;
+                if (e.code === 'KeyE') toggleInventory();
+            });
+
+            document.addEventListener('keyup', (e) => {
+                if (e.code === 'KeyW') moveForward = false;
+                if (e.code === 'KeyS') moveBackward = false;
+                if (e.code === 'KeyA') moveLeft = false;
+                if (e.code === 'KeyD') moveRight = false;
+                if (e.code === 'Space') moveUp = false;
+                if (e.code === 'ShiftLeft') moveDown = false;
+            });
+
+            // تحريك الكاميرا واللاعب
             function animate() {
-                animationFrameId = requestAnimationFrame(animate);
-                angle += 0.005;
-                camera.position.x = Math.sin(angle) * 12;
-                camera.position.z = Math.cos(angle) * 12;
-                camera.lookAt(0, 1, 0);
+                requestAnimationFrame(animate);
+
+                const speed = 0.15;
+                if (moveForward) camera.position.z -= speed;
+                if (moveBackward) camera.position.z += speed;
+                if (moveLeft) camera.position.x -= speed;
+                if (moveRight) camera.position.x += speed;
+                if (moveUp) camera.position.y += speed;
+                if (moveDown) camera.position.y -= speed;
+
                 renderer.render(scene, camera);
             }
             animate();
         }
 
-        function exitWorld() {
-            cancelAnimationFrame(animationFrameId);
-            document.getElementById('gameCanvas').style.display = 'none';
-            document.getElementById('gameUI').style.display = 'none';
-            document.getElementById('uiContainer').style.display = 'flex';
-            showScreen('singleScreen');
+        function toggleInventory() {
+            isInventoryOpen = !isInventoryOpen;
+            document.getElementById('inventoryModal').style.display = isInventoryOpen ? 'block' : 'none';
         }
 
-        const canvas = document.getElementById('skinCanvas');
-        const ctx = canvas.getContext('2d');
-
-        ctx.fillStyle = '#b57a55';
-        ctx.fillRect(45, 10, 70, 60);
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(45, 10, 70, 60);
-
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(55, 25, 14, 10);
-        ctx.fillRect(91, 25, 14, 10);
-        ctx.fillStyle = '#000';
-        ctx.fillRect(60, 27, 7, 7);
-        ctx.fillRect(94, 27, 7, 7);
-
-        ctx.beginPath();
-        ctx.arc(80, 50, 15, 0, Math.PI, false);
-        ctx.stroke();
-
-        ctx.fillStyle = '#3b43cc';
-        ctx.fillRect(35, 70, 90, 70);
-        ctx.strokeRect(35, 70, 90, 70);
-
-        ctx.fillStyle = '#b57a55';
-        ctx.fillRect(5, 70, 30, 60);
-        ctx.strokeRect(5, 70, 30, 60);
-        ctx.fillRect(125, 70, 30, 60);
-        ctx.strokeRect(125, 70, 30, 60);
-
-        ctx.fillStyle = '#ffeb00';
-        ctx.fillRect(35, 140, 42, 75);
-        ctx.strokeRect(35, 140, 42, 75);
-        ctx.fillRect(83, 140, 42, 75);
-        ctx.strokeRect(83, 140, 42, 75);
+        function selectBlock(colorHex) {
+            selectedColor = colorHex;
+        }
     </script>
 </body>
 </html>
