@@ -3,68 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crafti.io - Full Edition</title>
+    <title>Crafti.io - Improved Physics & Mobs</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; user-select: none; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; user-select: none; }
         body { background: #111; height: 100vh; overflow: hidden; }
 
-        /* اللوبي / قائمة الإعدادات */
         #lobbyScreen {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://threejs.org/examples/textures/land_ocean_ice_cloud_2048.jpg');
-            background-size: cover; display: flex; flex-direction: column; 
+            background: #18181c; display: flex; flex-direction: column; 
             align-items: center; justify-content: center; z-index: 500; color: #fff;
         }
 
-        .lobby-title { font-size: 48px; color: #00e5ff; margin-bottom: 25px; text-shadow: 3px 3px #000; font-weight: bold; }
-        .menu-card { background: rgba(30, 30, 40, 0.95); border: 2px solid #00e5ff; padding: 25px; border-radius: 12px; width: 340px; display: flex; flex-direction: column; gap: 15px; box-shadow: 0 0 20px rgba(0,229,255,0.3); }
+        .lobby-title { font-size: 48px; color: #00e5ff; margin-bottom: 20px; font-weight: bold; }
+        .menu-card { background: #23232a; border: 2px solid #00e5ff; padding: 25px; border-radius: 12px; width: 340px; display: flex; flex-direction: column; gap: 15px; }
 
         .setting-group { display: flex; flex-direction: column; gap: 5px; text-align: right; }
-        .setting-group label { font-size: 14px; color: #aaa; }
-        .setting-group select { padding: 10px; background: #2a2a36; border: 1px solid #444; color: #fff; border-radius: 6px; outline: none; font-size: 15px; cursor: pointer; }
+        .setting-group select { padding: 10px; background: #2a2a36; border: 1px solid #444; color: #fff; border-radius: 6px; outline: none; }
 
         .btn-start {
             padding: 14px; background: #22c55e; border: none; border-radius: 8px;
-            color: #fff; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px;
+            color: #fff; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s;
         }
-        .btn-start:hover { background: #16a34a; transform: scale(1.02); }
+        .btn-start:hover { background: #16a34a; }
 
-        /* عناصر الواجهة داخل اللعبة */
         #crosshair { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 26px; pointer-events: none; z-index: 100; display: none; font-weight: bold; }
-        #ui-overlay { position: fixed; top: 15px; left: 15px; color: white; background: rgba(0,0,0,0.75); padding: 10px 15px; border-radius: 8px; z-index: 100; font-size: 13px; display: none; line-height: 1.6; }
+        #ui-overlay { position: fixed; top: 15px; left: 15px; color: white; background: rgba(0,0,0,0.8); padding: 10px 15px; border-radius: 8px; z-index: 100; font-size: 13px; display: none; line-height: 1.5; }
         .exit-btn { position: fixed; top: 15px; right: 15px; z-index: 100; display: none; padding: 8px 16px; background: #ef4444; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
 
-        /* شريط الأدوات (Hotbar) */
         #hotbar {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
             display: none; gap: 8px; background: rgba(0,0,0,0.6); padding: 6px; border-radius: 8px; z-index: 100;
         }
-        .hotbar-slot {
-            width: 45px; height: 45px; border: 2px solid #555; border-radius: 6px;
-            display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 12px; cursor: pointer;
-        }
+        .hotbar-slot { width: 50px; height: 50px; border: 2px solid #555; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 12px; }
         .hotbar-slot.active { border-color: #00e5ff; background: rgba(0, 229, 255, 0.2); }
     </style>
 </head>
 <body>
 
-    <!-- واجهة اللوبي -->
     <div id="lobbyScreen">
-        <h1 class="lobby-title">Crafti.io</h1>
+        <h1 class="lobby-title">Crafti.io Pro</h1>
         <div class="menu-card">
             <div class="setting-group">
-                <label>نمط اللعب (Game Mode):</label>
+                <label>نمط اللعب:</label>
                 <select id="gameMode">
-                    <option value="creative">كرافتينغ / إبداعي (Creative)</option>
                     <option value="survival">بقاء (Survival)</option>
+                    <option value="creative">إبداعي (Creative)</option>
                 </select>
             </div>
             <div class="setting-group">
-                <label>نوع العالم (World Type):</label>
+                <label>نوع العالم:</label>
                 <select id="worldType">
-                    <option value="normal">عادي (جبال، جبال وكهوف)</option>
-                    <option value="flat">مسطح (Flat World)</option>
+                    <option value="normal">عادي (تضاريس وكهوف)</option>
+                    <option value="flat">مسطح (Flat)</option>
                 </select>
             </div>
             <button class="btn-start" onclick="enterGame()">دخول اللعبة</button>
@@ -74,9 +65,9 @@
     <button id="exitBtn" class="exit-btn" onclick="location.reload()">العودة للقائمة</button>
     <div id="crosshair">+</div>
     <div id="ui-overlay">
-        WASD: تحرك | Space: قفز / صعود<br>
-        كليك يسار: <b>كسر البلوك</b> | كليك يمين: <b>بناء</b><br>
-        الأرقام 1-4: تغيير نوع البلوك للبناء
+        WASD: تحرك | Space: قفز<br>
+        كليك يسار: كسر | كليك يمين: بناء<br>
+        1-4: اختيار البلوك
     </div>
 
     <div id="hotbar">
@@ -95,24 +86,27 @@
         let isPointerLocked = false;
         const container = document.getElementById('canvas-container');
 
-        const WORLD_SIZE = 32;
+        const WORLD_SIZE = 48; // توسيع العالم
         let blocksMap = new Map(); 
         let blocksGroup = new THREE.Group();
         let mobs = [];
         
-        let velocity = new THREE.Vector3();
+        let playerVelocity = new THREE.Vector3();
+        let playerRadius = 0.3;
+        let playerHeight = 1.6;
         let clock = new THREE.Clock();
         let selectedBlockType = 'grass';
 
-        // الخامات والألوان
-        const blockMaterials = {
+        const materials = {
             grass: new THREE.MeshLambertMaterial({ color: 0x4caf50 }),
             dirt: new THREE.MeshLambertMaterial({ color: 0x795548 }),
             stone: new THREE.MeshLambertMaterial({ color: 0x808080 }),
             wood: new THREE.MeshLambertMaterial({ color: 0x5d4037 }),
             leaves: new THREE.MeshLambertMaterial({ color: 0x2e7d32 }),
-            cow: new THREE.MeshLambertMaterial({ color: 0xd7ccc8 }),
-            zombie: new THREE.MeshLambertMaterial({ color: 0x2e7d32 })
+            cow: new THREE.MeshLambertMaterial({ color: 0x8d6e63 }),
+            sheep: new THREE.MeshLambertMaterial({ color: 0xeceff1 }),
+            zombie: new THREE.MeshLambertMaterial({ color: 0x388e3c }),
+            creeper: new THREE.MeshLambertMaterial({ color: 0x00e676 })
         };
 
         const boxGeo = new THREE.BoxGeometry(1, 1, 1);
@@ -132,7 +126,6 @@
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x87ceeb);
 
-            // إضاءة العالم
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
             scene.add(ambientLight);
             const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
@@ -148,14 +141,11 @@
             container.appendChild(renderer.domElement);
 
             raycaster = new THREE.Raycaster();
-            camera.position.set(WORLD_SIZE / 2, 10, WORLD_SIZE / 2);
+            camera.position.set(WORLD_SIZE / 2, 12, WORLD_SIZE / 2);
 
-            const mode = document.getElementById('gameMode').value;
             const type = document.getElementById('worldType').value;
-
             buildWorld(type);
 
-            // التحكم في الإدخال
             document.addEventListener('pointerlockchange', () => {
                 isPointerLocked = (document.pointerLockElement === container);
             });
@@ -179,7 +169,6 @@
             });
             document.addEventListener('keyup', (e) => { keys[e.code] = false; });
 
-            // التفاعل: البناء والكسر
             document.addEventListener('mousedown', (e) => {
                 if (!isPointerLocked) return;
                 
@@ -188,17 +177,14 @@
 
                 if (intersects.length > 0 && intersects[0].distance < 6) {
                     const hit = intersects[0];
-
-                    if (e.button === 0) { // زر اليسار: كسر البلوك
+                    if (e.button === 0) {
                         blocksGroup.remove(hit.object);
                         const pos = hit.object.position;
-                        blocksMap.delete(`${pos.x},${pos.y},${pos.z}`);
-                    } 
-                    else if (e.button === 2) { // زر اليمين: بناء بلوك
+                        blocksMap.delete(`${Math.round(pos.x)},${Math.round(pos.y)},${Math.round(pos.z)}`);
+                    } else if (e.button === 2) {
                         const normal = hit.face.normal;
                         const newPos = hit.object.position.clone().add(normal);
-                        
-                        createBlock(newPos.x, newPos.y, newPos.z, selectedBlockType);
+                        createBlock(Math.round(newPos.x), Math.round(newPos.y), Math.round(newPos.z), selectedBlockType);
                     }
                 }
             });
@@ -218,26 +204,29 @@
                     if (keys['KeyA']) moveDir.add(side.clone().negate());
                     
                     moveDir.normalize();
-                    const speed = (mode === 'creative' && keys['ShiftLeft']) ? 50.0 : 25.0;
+                    const speed = 12.0;
 
                     if (moveDir.lengthSq() > 0) {
-                        velocity.x += moveDir.x * speed * delta;
-                        velocity.z += moveDir.z * speed * delta;
+                        playerVelocity.x = moveDir.x * speed;
+                        playerVelocity.z = moveDir.z * speed;
+                    } else {
+                        playerVelocity.x = 0;
+                        playerVelocity.z = 0;
                     }
 
-                    if (keys['Space']) velocity.y += speed * delta;
-                    if (keys['KeyC'] || (mode === 'creative' && keys['ControlLeft'])) velocity.y -= speed * delta;
+                    if (keys['Space']) {
+                        playerVelocity.y = 8.0; // قفز
+                    } else {
+                        playerVelocity.y -= 20.0 * delta; // جاذبية
+                    }
 
-                    velocity.x -= velocity.x * 10.0 * delta;
-                    velocity.z -= velocity.z * 10.0 * delta;
-                    velocity.y -= velocity.y * 10.0 * delta;
+                    // حركة مع فحص الاصطدام المباشر لمنع الاختراق
+                    moveWithCollision(playerVelocity.clone().multiplyScalar(delta));
 
-                    camera.position.addScaledVector(velocity, delta);
-
-                    // تحريك الكائنات (Mobs)
+                    // تحريك الـ Mobs
                     mobs.forEach((mob, i) => {
-                        mob.position.x += Math.sin(Date.now() * 0.001 + i) * 0.02;
-                        mob.position.z += Math.cos(Date.now() * 0.001 + i) * 0.02;
+                        mob.position.x += Math.sin(Date.now() * 0.001 + i) * 0.01;
+                        mob.position.z += Math.cos(Date.now() * 0.001 + i) * 0.01;
                     });
                 }
 
@@ -246,11 +235,47 @@
             animate();
         }
 
+        // نظام منع الاختراق عند الحركة
+        function moveWithCollision(displacement) {
+            let targetPos = camera.position.clone().add(displacement);
+
+            // فحص المحاور بالترتيب (X, Y, Z) لمنع الانحشار
+            ['x', 'y', 'z'].forEach(axis => {
+                let testPos = camera.position.clone();
+                testPos[axis] = targetPos[axis];
+
+                let minX = Math.floor(testPos.x - playerRadius);
+                let maxX = Math.floor(testPos.x + playerRadius);
+                let minY = Math.floor(testPos.y - playerHeight);
+                let maxY = Math.floor(testPos.y);
+                let minZ = Math.floor(testPos.z - playerRadius);
+                let maxZ = Math.floor(testPos.z + playerRadius);
+
+                let collided = false;
+                for (let x = minX; x <= maxX; x++) {
+                    for (let y = minY; y <= maxY; y++) {
+                        for (let z = minZ; z <= maxZ; z++) {
+                            if (blocksMap.has(`${x},${y},${z}`)) {
+                                collided = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (!collided) {
+                    camera.position[axis] = testPos[axis];
+                } else {
+                    playerVelocity[axis] = 0;
+                }
+            });
+        }
+
         function createBlock(x, y, z, type) {
             const key = `${x},${y},${z}`;
             if (blocksMap.has(key)) return;
 
-            const mesh = new THREE.Mesh(boxGeo, blockMaterials[type]);
+            const mesh = new THREE.Mesh(boxGeo, materials[type]);
             mesh.position.set(x, y, z);
             blocksGroup.add(mesh);
             blocksMap.set(key, mesh);
@@ -259,7 +284,7 @@
         function buildWorld(type) {
             for (let x = 0; x < WORLD_SIZE; x++) {
                 for (let z = 0; z < WORLD_SIZE; z++) {
-                    let height = (type === 'flat') ? 1 : Math.floor(Math.sin(x * 0.2) * 2 + Math.cos(z * 0.2) * 2 + 5);
+                    let height = (type === 'flat') ? 1 : Math.floor(Math.sin(x * 0.15) * 3 + Math.cos(z * 0.15) * 3 + 5);
 
                     createBlock(x, height, z, 'grass');
 
@@ -267,29 +292,40 @@
                         createBlock(x, y, z, (y === height - 1) ? 'dirt' : 'stone');
                     }
 
-                    if (type !== 'flat' && x > 2 && x < WORLD_SIZE - 2 && z > 2 && z < WORLD_SIZE - 2) {
+                    if (type !== 'flat' && x > 3 && x < WORLD_SIZE - 3 && z > 3 && z < WORLD_SIZE - 3) {
                         if (Math.random() < 0.02) spawnTree(x, height + 1, z);
-                        if (Math.random() < 0.01) spawnMob(x, height + 1, z, 'cow');
-                        if (Math.random() < 0.01) spawnMob(x, height + 1, z, 'zombie');
+                        if (Math.random() < 0.008) spawnMob(x, height + 1, z, 'cow');
+                        if (Math.random() < 0.008) spawnMob(x, height + 1, z, 'sheep');
+                        if (Math.random() < 0.008) spawnMob(x, height + 1, z, 'zombie');
+                        if (Math.random() < 0.008) spawnMob(x, height + 1, z, 'creeper');
                     }
                 }
             }
         }
 
         function spawnTree(x, y, z) {
-            for (let i = 0; i < 3; i++) createBlock(x, y + i, z, 'wood');
+            for (let i = 0; i < 4; i++) createBlock(x, y + i, z, 'wood');
             for (let lx = -1; lx <= 1; lx++) {
                 for (let lz = -1; lz <= 1; lz++) {
-                    createBlock(x + lx, y + 3, z + lz, 'leaves');
+                    createBlock(x + lx, y + 4, z + lz, 'leaves');
                 }
             }
         }
 
         function spawnMob(x, y, z, type) {
             const mobGroup = new THREE.Group();
-            const bodyGeo = (type === 'cow') ? new THREE.BoxGeometry(0.8, 0.6, 1.2) : new THREE.BoxGeometry(0.6, 1.4, 0.5);
-            const mobMesh = new THREE.Mesh(bodyGeo, blockMaterials[type]);
-            mobMesh.position.y = (type === 'cow') ? 0.3 : 0.7;
+            let bodyGeo;
+
+            if (type === 'cow' || type === 'sheep') {
+                bodyGeo = new THREE.BoxGeometry(0.8, 0.7, 1.2);
+            } else if (type === 'zombie') {
+                bodyGeo = new THREE.BoxGeometry(0.6, 1.5, 0.5);
+            } else if (type === 'creeper') {
+                bodyGeo = new THREE.BoxGeometry(0.5, 1.4, 0.5);
+            }
+
+            const mobMesh = new THREE.Mesh(bodyGeo, materials[type]);
+            mobMesh.position.y = 0.7;
             mobGroup.add(mobMesh);
 
             mobGroup.position.set(x, y, z);
