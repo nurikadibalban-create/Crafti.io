@@ -3,275 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crafti.io - World Generation Upgrade</title>
+    <title>Crafti.io - Fast & Optimized</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; user-select: none; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; user-select: none; }
         body { background: #111; height: 100vh; overflow: hidden; }
 
         #lobbyScreen {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
-                        url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1920&auto=format&fit=crop') center/cover;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 500; color: #fff;
+            background: #1e1e24; display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; z-index: 500; color: #fff;
         }
 
-        .lobby-title { font-size: 52px; font-weight: 900; color: #00e5ff; text-shadow: 3px 3px 0 #000; margin-bottom: 20px; }
-        .menu-card { background: rgba(20, 20, 20, 0.95); border: 2px solid #00e5ff; padding: 25px; border-radius: 12px; width: 340px; display: flex; flex-direction: column; gap: 15px; }
+        .lobby-title { font-size: 42px; color: #00e5ff; margin-bottom: 20px; text-shadow: 2px 2px #000; }
+        .menu-card { background: #2b2b36; border: 2px solid #00e5ff; padding: 20px; border-radius: 10px; width: 300px; display: flex; flex-direction: column; gap: 15px; }
 
-        .field-group { display: flex; flex-direction: column; gap: 5px; }
-        .field-group label { font-size: 14px; font-weight: bold; color: #bbb; }
-
-        .select-box { padding: 10px; background: #2a2a2a; color: #fff; border: 1px solid #555; border-radius: 6px; outline: none; font-size: 15px; }
-        
         .btn-start {
             padding: 12px; background: #22c55e; border: none; border-radius: 6px;
-            color: #fff; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s;
+            color: #fff; font-size: 18px; font-weight: bold; cursor: pointer;
         }
         .btn-start:hover { background: #16a34a; }
 
-        #inventory {
-            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 80vw; height: 80vh; background: rgba(15, 15, 15, 0.98); border: 3px solid #00e5ff;
-            border-radius: 12px; padding: 20px; color: #fff; z-index: 600; overflow-y: auto;
-        }
-        .inv-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 15px; }
-        .inv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
-        .inv-item {
-            height: 90px; background: #222; border: 2px solid #444; border-radius: 6px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            cursor: pointer; gap: 4px; transition: 0.15s; padding: 4px;
-        }
-        .inv-item:hover { border-color: #00e5ff; background: #333; transform: scale(1.03); }
-        .inv-item img { width: 36px; height: 36px; image-rendering: pixelated; }
-        .inv-item span { font-size: 10px; font-weight: bold; text-align: center; color: #ccc; }
-
-        #crosshair { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 26px; pointer-events: none; z-index: 100; display: none; }
-        #ui-overlay { position: fixed; top: 15px; left: 15px; color: white; background: rgba(0,0,0,0.85); padding: 12px 18px; border-radius: 8px; z-index: 100; font-size: 13px; border: 1px solid #555; display: none; }
+        #crosshair { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 24px; pointer-events: none; z-index: 100; display: none; }
+        #ui-overlay { position: fixed; top: 15px; left: 15px; color: white; background: rgba(0,0,0,0.8); padding: 10px 15px; border-radius: 8px; z-index: 100; font-size: 13px; display: none; }
         .exit-btn { position: fixed; top: 15px; right: 15px; z-index: 100; display: none; padding: 8px 16px; background: #ef4444; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div id="lobbyScreen">
-        <h1 class="lobby-title">Crafti.io (Trees & Mobs)</h1>
+        <h1 class="lobby-title">Crafti.io Pro</h1>
         <div class="menu-card">
-            <div class="field-group">
-                <label>نوع العالم (World Type):</label>
-                <select id="worldType" class="select-box">
-                    <option value="infinite_terrain">Infinite Terrain (عالم مع أشجار وكهوف)</option>
-                    <option value="infinite_flat">Flat (مسطح لا نهائي)</option>
-                </select>
-            </div>
-
-            <div class="field-group">
-                <label>نمط اللعب (Game Mode):</label>
-                <select id="gameMode" class="select-box">
-                    <option value="creative">Creative (إبداع - طيران وبناء)</option>
-                    <option value="survival">Survival (بقاء على قيد الحياة)</option>
-                </select>
-            </div>
-
-            <button class="btn-start" onclick="enterGame()">ابدأ اللعب</button>
+            <button class="btn-start" onclick="enterGame()">ابدأ اللعب (سريع وخفيف)</button>
         </div>
     </div>
 
-    <button id="exitBtn" class="exit-btn" onclick="location.reload()">Return to Lobby</button>
+    <button id="exitBtn" class="exit-btn" onclick="location.reload()">العودة للقائمة</button>
     <div id="crosshair">+</div>
-
-    <div id="ui-overlay">
-        <b>التحكم:</b> WASD تحرك | Space صعود | C نزول<br>
-        E: فتح الشنطة | Mode: <span id="modeDisplay" style="color:#00e5ff;"></span>
-    </div>
-
-    <div id="inventory">
-        <div class="inv-header">
-            <h2 style="color:#00e5ff;">حقيبة الـ 1000 بلوك</h2>
-            <span style="color:#aaa;">اضغط E للإغلاق</span>
-        </div>
-        <div class="inv-grid" id="invGrid"></div>
-    </div>
+    <div id="ui-overlay">WASD: تحرك | Space/C: صعود ونزول | كليك يسار: هدم | كليك يمين: بناء</div>
 
     <div id="canvas-container"></div>
 
     <script>
-        const all1000Blocks = [];
-        const baseNames = ['Grass', 'Dirt', 'Stone', 'Wood', 'Leaves', 'Cobble', 'Plank', 'Brick', 'Diamond', 'Gold', 'Iron', 'Coal'];
-
-        for (let i = 1; i <= 1000; i++) {
-            const baseIndex = (i - 1) % baseNames.length;
-            const name = `${baseNames[baseIndex]} #${i}`;
-            
-            const canvas = document.createElement('canvas');
-            canvas.width = 16; canvas.height = 16;
-            const ctx = canvas.getContext('2d');
-
-            const hue = (i * 137.5) % 360;
-            ctx.fillStyle = `hsl(${hue}, 60%, 45%)`;
-            ctx.fillRect(0, 0, 16, 16);
-
-            ctx.fillStyle = `hsl(${hue}, 70%, 30%)`;
-            for (let j = 0; j < 35; j++) {
-                ctx.fillRect(Math.floor(Math.random() * 16), Math.floor(Math.random() * 16), 1, 1);
-            }
-
-            const texture = new THREE.CanvasTexture(canvas);
-            texture.magFilter = THREE.NearestFilter;
-            all1000Blocks.push({ id: i, name: name, texture: texture, src: canvas.toDataURL() });
-        }
-
-        let selectedBlock = all1000Blocks[0];
-
-        const invGrid = document.getElementById('invGrid');
-        all1000Blocks.forEach((b) => {
-            const div = document.createElement('div');
-            div.className = 'inv-item';
-            div.innerHTML = `<img src="${b.src}"><span>${b.name}</span>`;
-            div.onclick = () => {
-                selectedBlock = b;
-                document.getElementById('inventory').style.display = 'none';
-                container.requestPointerLock();
-            };
-            invGrid.appendChild(div);
-        });
-
         let scene, camera, renderer, raycaster;
-        let loadedChunks = {};
-        let activeBlocks = [];
-        let blockPositions = new Set();
-        let mobs = [];
         let keys = {};
         let yaw = 0, pitch = 0;
         let isPointerLocked = false;
         const container = document.getElementById('canvas-container');
 
-        const CHUNK_SIZE = 16;
-        const RENDER_DISTANCE = 3;
+        const BLOCK_SIZE = 1;
+        const WORLD_SIZE = 32; // حجم العالم محسن للأداء الفائق
+        let blockPositions = new Set();
+        let instancedMeshes = {};
+        let mobs = [];
+
+        // خامات البلوكات
+        const materials = {
+            grass: new THREE.MeshBasicMaterial({ color: 0x4caf50 }),
+            dirt: new THREE.MeshBasicMaterial({ color: 0x795548 }),
+            stone: new THREE.MeshBasicMaterial({ color: 0x9e9e9e }),
+            wood: new THREE.MeshBasicMaterial({ color: 0x5d4037 }),
+            leaves: new THREE.MeshBasicMaterial({ color: 0x2e7d32 }),
+        };
+
+        const boxGeo = new THREE.BoxGeometry(1, 1, 1);
 
         function enterGame() {
-            const worldType = document.getElementById('worldType').value;
-            const gameMode = document.getElementById('gameMode').value;
-            
-            document.getElementById('modeDisplay').innerText = gameMode.toUpperCase();
             document.getElementById('lobbyScreen').style.display = 'none';
             document.getElementById('crosshair').style.display = 'block';
             document.getElementById('ui-overlay').style.display = 'block';
             document.getElementById('exitBtn').style.display = 'block';
 
-            initEngine(worldType);
+            initEngine();
             container.requestPointerLock();
         }
 
-        function initEngine(worldType) {
+        function initEngine() {
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x87ceeb);
 
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
-            renderer = new THREE.WebGLRenderer({ antialias: true });
+            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 500);
+            renderer = new THREE.WebGLRenderer({ antialias: false }); // إلغاء المنعم للسرعة القصوى
             renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
             container.appendChild(renderer.domElement);
 
             raycaster = new THREE.Raycaster();
-            scene.add(new THREE.AmbientLight(0xffffff, 1.1));
+            camera.position.set(WORLD_SIZE / 2, 12, WORLD_SIZE / 2);
 
-            camera.position.set(0, 12, 0);
-
-            function updateWorldChunks() {
-                const pX = Math.floor(camera.position.x / CHUNK_SIZE);
-                const pZ = Math.floor(camera.position.z / CHUNK_SIZE);
-
-                for (let x = pX - RENDER_DISTANCE; x <= pX + RENDER_DISTANCE; x++) {
-                    for (let z = pZ - RENDER_DISTANCE; z <= pZ + RENDER_DISTANCE; z++) {
-                        const key = `${x},${z}`;
-                        if (!loadedChunks[key]) {
-                            generateChunk(x, z, worldType);
-                            loadedChunks[key] = true;
-                        }
-                    }
-                }
-            }
-
-            function generateChunk(cx, cz, type) {
-                for (let x = 0; x < CHUNK_SIZE; x++) {
-                    for (let z = 0; z < CHUNK_SIZE; z++) {
-                        const wX = cx * CHUNK_SIZE + x;
-                        const wZ = cz * CHUNK_SIZE + z;
-                        
-                        if (type === 'infinite_flat') {
-                            addBlockMesh(wX, 0, wZ, all1000Blocks[0]);
-                        } else {
-                            let height = Math.floor(Math.sin(wX * 0.08) * Math.cos(wZ * 0.08) * 6 + Math.sin(wX * 0.03) * 4);
-                            
-                            addBlockMesh(wX, height, wZ, all1000Blocks[0]); // عشب
-                            
-                            // توليد طبقات الأرض مع إيجاد ثقوب للكهوف
-                            for (let h = height - 1; h >= height - 6; h--) {
-                                const caveNoise = Math.sin(wX * 0.3) + Math.cos(h * 0.3) + Math.sin(wZ * 0.3);
-                                if (caveNoise < 1.2) { // حفر الكهف إذا كانت القيمة مناسبة
-                                    addBlockMesh(wX, h, wZ, h === height - 1 ? all1000Blocks[1] : all1000Blocks[2]);
-                                }
-                            }
-
-                            // توليد الأشجار عشوائياً
-                            if (Math.random() < 0.015) {
-                                createTree(wX, height + 1, wZ);
-                            }
-
-                            // توليد الحيوانات عشوائياً
-                            if (Math.random() < 0.005) {
-                                createMob(wX, height + 1, wZ);
-                            }
-                        }
-                    }
-                }
-            }
-
-            function createTree(x, y, z) {
-                // جذع الشجرة
-                for (let i = 0; i < 4; i++) {
-                    addBlockMesh(x, y + i, z, all1000Blocks[3]);
-                }
-                // أوراق الشجرة
-                for (let lx = -1; lx <= 1; lx++) {
-                    for (let lz = -1; lz <= 1; lz++) {
-                        for (let ly = 2; ly <= 4; ly++) {
-                            if (lx === 0 && lz === 0 && ly < 4) continue;
-                            addBlockMesh(x + lx, y + ly, z + lz, all1000Blocks[4]);
-                        }
-                    }
-                }
-            }
-
-            function createMob(x, y, z) {
-                const mobGroup = new THREE.Group();
-                const bodyGeo = new THREE.BoxGeometry(0.8, 0.8, 1.2);
-                const bodyMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-                const body = new THREE.Mesh(bodyGeo, bodyMat);
-                body.position.y = 0.6;
-                mobGroup.add(body);
-
-                mobGroup.position.set(x, y, z);
-                scene.add(mobGroup);
-                mobs.push(mobGroup);
-            }
-
-            function addBlockMesh(x, y, z, block) {
-                const geo = new THREE.BoxGeometry(1, 1, 1);
-                const mat = new THREE.MeshBasicMaterial({ map: block.texture });
-                const mesh = new THREE.Mesh(geo, mat);
-                mesh.position.set(x, y, z);
-                scene.add(mesh);
-                activeBlocks.push(mesh);
-                blockPositions.add(`${x},${y},${z}`);
-            }
-
-            function isSolidBlock(pos) {
-                const bX = Math.round(pos.x);
-                const bY = Math.round(pos.y);
-                const bZ = Math.round(pos.z);
-                return blockPositions.has(`${bX},${bY},${bZ}`);
-            }
+            generateSmoothWorld();
 
             document.addEventListener('pointerlockchange', () => {
                 isPointerLocked = (document.pointerLockElement === container);
@@ -279,54 +99,21 @@
 
             document.addEventListener('mousemove', (e) => {
                 if (!isPointerLocked) return;
-                yaw -= e.movementX * 0.0025;
-                pitch -= e.movementY * 0.0025;
+                yaw -= e.movementX * 0.002;
+                pitch -= e.movementY * 0.002;
                 pitch = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, pitch));
                 camera.rotation.order = "YXZ";
                 camera.rotation.y = yaw;
                 camera.rotation.x = pitch;
             });
 
-            document.addEventListener('keydown', (e) => {
-                keys[e.code] = true;
-                if (e.code === 'KeyE') {
-                    const inv = document.getElementById('inventory');
-                    if (inv.style.display === 'block') {
-                        inv.style.display = 'none';
-                        container.requestPointerLock();
-                    } else {
-                        inv.style.display = 'block';
-                        document.exitPointerLock();
-                    }
-                }
-            });
-
+            document.addEventListener('keydown', (e) => { keys[e.code] = true; });
             document.addEventListener('keyup', (e) => { keys[e.code] = false; });
-
-            window.addEventListener('mousedown', (e) => {
-                if (!isPointerLocked) return;
-                raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-                const intersects = raycaster.intersectObjects(activeBlocks);
-
-                if (intersects.length > 0) {
-                    const hit = intersects[0];
-                    if (e.button === 0) {
-                        scene.remove(hit.object);
-                        activeBlocks = activeBlocks.filter(b => b !== hit.object);
-                        blockPositions.delete(`${Math.round(hit.object.position.x)},${Math.round(hit.object.position.y)},${Math.round(hit.object.position.z)}`);
-                    } else if (e.button === 2) {
-                        const pos = hit.point.add(hit.face.normal.clone().multiplyScalar(0.5));
-                        addBlockMesh(Math.round(pos.x), Math.round(pos.y), Math.round(pos.z), selectedBlock);
-                    }
-                }
-            });
-
-            window.addEventListener('contextmenu', e => e.preventDefault());
 
             function animate() {
                 requestAnimationFrame(animate);
                 if (isPointerLocked) {
-                    const speed = keys['ShiftLeft'] ? 0.25 : 0.12;
+                    const speed = keys['ShiftLeft'] ? 0.3 : 0.15;
                     const dir = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
                     const side = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
 
@@ -339,21 +126,98 @@
                     if (keys['Space']) nextPos.y += speed;
                     if (keys['KeyC']) nextPos.y -= speed;
 
-                    if (!isSolidBlock(nextPos)) {
+                    // فحص الاصطدام البسيط
+                    const bX = Math.round(nextPos.x);
+                    const bY = Math.round(nextPos.y);
+                    const bZ = Math.round(nextPos.z);
+
+                    if (!blockPositions.has(`${bX},${bY},${bZ}`)) {
                         camera.position.copy(nextPos);
                     }
 
-                    // تحريك الحيوانات بشكل بسيط
-                    mobs.forEach(mob => {
-                        mob.position.x += (Math.random() - 0.5) * 0.02;
-                        mob.position.z += (Math.random() - 0.5) * 0.02;
+                    // تحريك الحيوانات
+                    mobs.forEach(m => {
+                        m.position.x += Math.sin(Date.now() * 0.002) * 0.01;
                     });
-
-                    updateWorldChunks();
                 }
                 renderer.render(scene, camera);
             }
             animate();
+        }
+
+        function generateSmoothWorld() {
+            const blocksData = { grass: [], dirt: [], stone: [], wood: [], leaves: [] };
+
+            for (let x = 0; x < WORLD_SIZE; x++) {
+                for (let z = 0; z < WORLD_SIZE; z++) {
+                    let height = Math.floor(Math.sin(x * 0.2) * 2 + Math.cos(z * 0.2) * 2 + 5);
+
+                    // سطح العشب
+                    addBlockData('grass', x, height, z, blocksData);
+
+                    // تحت الأرض مع وجود كهوف
+                    for (let y = height - 1; y >= 0; y--) {
+                        // معادلة الكهوف
+                        const isCave = (y < height - 1 && y > 1) && (Math.sin(x * 0.4 + y * 0.5 + z * 0.4) > 0.4);
+                        if (!isCave) {
+                            const type = (y === height - 1) ? 'dirt' : 'stone';
+                            addBlockData(type, x, y, z, blocksData);
+                        }
+                    }
+
+                    // توليد الأشجار
+                    if (x > 3 && x < WORLD_SIZE - 3 && z > 3 && z < WORLD_SIZE - 3) {
+                        if (Math.random() < 0.02) {
+                            spawnTree(x, height + 1, z, blocksData);
+                        }
+                        if (Math.random() < 0.01) {
+                            spawnMob(x, height + 1, z);
+                        }
+                    }
+                }
+            }
+
+            // رسم البلوكات دفعة واحدة عبر InstancedMesh للأداء العالي
+            Object.keys(blocksData).forEach(type => {
+                const list = blocksData[type];
+                if (list.length === 0) return;
+
+                const instMesh = new THREE.InstancedMesh(boxGeo, materials[type], list.length);
+                const dummy = new THREE.Object3D();
+
+                list.forEach((pos, i) => {
+                    dummy.position.set(pos.x, pos.y, pos.z);
+                    dummy.updateMatrix();
+                    instMesh.setMatrixAt(i, dummy.matrix);
+                });
+
+                instMesh.instanceMatrix.needsUpdate = true;
+                scene.add(instMesh);
+            });
+        }
+
+        function addBlockData(type, x, y, z, blocksData) {
+            blocksData[type].push({ x, y, z });
+            blockPositions.add(`${x},${y},${z}`);
+        }
+
+        function spawnTree(x, y, z, blocksData) {
+            for (let i = 0; i < 3; i++) addBlockData('wood', x, y + i, z, blocksData);
+            for (let lx = -1; lx <= 1; lx++) {
+                for (let lz = -1; lz <= 1; lz++) {
+                    addBlockData('leaves', x + lx, y + 3, z + lz, blocksData);
+                }
+            }
+        }
+
+        function spawnMob(x, y, z) {
+            const mob = new THREE.Mesh(
+                new THREE.BoxGeometry(0.6, 0.6, 0.9),
+                new THREE.MeshBasicMaterial({ color: 0xffcc00 })
+            );
+            mob.position.set(x, y + 0.3, z);
+            scene.add(mob);
+            mobs.push(mob);
         }
     </script>
 </body>
