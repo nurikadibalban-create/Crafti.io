@@ -7,213 +7,254 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial Black', Gadget, sans-serif; }
+        body { background: #000; height: 100vh; overflow: hidden; user-select: none; }
 
-        body {
-            background: #000;
-            height: 100vh;
-            overflow: hidden;
-            user-select: none;
-        }
-
-        /* واجهة اللعبة العلوية والسفلية (MineFun Style) */
         #crosshair {
-            position: fixed;
-            top: 50%; left: 50%;
-            width: 14px; height: 14px;
+            position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            color: #fff; font-size: 24px;
-            pointer-events: none; z-index: 600;
-            display: none; justify-content: center; align-items: center;
+            color: #fff; font-size: 26px; pointer-events: none;
+            z-index: 600; display: none;
         }
 
         #hotbar {
-            position: fixed;
-            bottom: 15px; left: 50%;
-            transform: translateX(-50%);
-            display: none; gap: 6px;
-            background: rgba(0,0,0,0.6);
-            padding: 6px; border-radius: 8px;
+            position: fixed; bottom: 15px; left: 50%;
+            transform: translateX(-50%); display: none; gap: 8px;
+            background: rgba(0,0,0,0.6); padding: 6px; border-radius: 8px;
             border: 2px solid #fff; z-index: 600;
         }
 
         .hotbar-slot {
-            width: 45px; height: 45px;
-            background: rgba(255,255,255,0.2);
-            border: 2px solid #888;
-            border-radius: 6px;
-            cursor: pointer;
+            width: 45px; height: 45px; background: rgba(255,255,255,0.2);
+            border: 2px solid #888; border-radius: 6px; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
-            font-size: 12px; color: #fff;
+            font-size: 11px; color: #fff;
         }
         .hotbar-slot.active { border-color: #ffeb00; background: rgba(255,255,255,0.4); }
 
         #inventoryModal {
-            display: none; position: fixed;
-            top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 350px; background: rgba(20,20,20,0.95);
-            border: 4px solid #fff; border-radius: 12px;
-            padding: 15px; color: #fff; z-index: 700;
+            display: none; position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); width: 320px;
+            background: rgba(20,20,20,0.95); border: 4px solid #fff;
+            border-radius: 12px; padding: 15px; color: #fff; z-index: 700;
         }
 
-        .inv-grid {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px;
-        }
-
+        .inv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
         .inv-item {
-            height: 50px; background: #333; border: 2px solid #666;
+            height: 45px; background: #333; border: 2px solid #666;
             border-radius: 6px; display: flex; align-items: center;
-            justify-content: center; cursor: pointer; font-size: 14px;
+            justify-content: center; cursor: pointer; font-size: 13px;
         }
-        .inv-item:hover { border-color: #ffeb00; }
 
         #instructions {
             position: fixed; top: 15px; right: 15px;
-            background: rgba(0,0,0,0.7); color: #fff;
-            padding: 10px; border-radius: 8px; font-size: 12px;
-            display: none; z-index: 600; line-height: 1.5;
+            background: rgba(0,0,0,0.7); color: #fff; padding: 10px;
+            border-radius: 8px; font-size: 12px; display: none; z-index: 600; line-height: 1.5;
         }
 
-        /* واجهة القوائم */
         .screen-overlay {
-            display: flex; position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
+            display: flex; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1000&auto=format&fit=crop') center/cover;
-            flex-direction: column; align-items: center; justify-content: center;
-            z-index: 100;
+            flex-direction: column; align-items: center; justify-content: center; z-index: 100;
         }
 
         .main-btn {
-            width: 260px; padding: 10px; margin: 8px 0;
-            background: #cccccc; border: 3px solid #000;
-            border-radius: 14px; font-size: 20px; color: #000;
-            text-align: center; cursor: pointer;
+            width: 260px; padding: 10px; margin: 8px 0; background: #cccccc;
+            border: 3px solid #000; border-radius: 14px; font-size: 20px;
+            color: #000; text-align: center; cursor: pointer;
             box-shadow: inset -3px -3px 0px #888, inset 3px 3px 0px #fff;
         }
+
+        #gameUI { display: none; position: fixed; top: 15px; left: 15px; z-index: 600; }
     </style>
 </head>
 <body>
 
-    <!-- الشاشة الرئيسية -->
     <div id="menuScreen" class="screen-overlay">
         <h1 style="font-size:70px; color:#80ffff; text-shadow:4px 4px #000; margin-bottom:20px;">Crafti.io</h1>
-        <div class="main-btn" onclick="startGame()">Play Game</div>
+        <div class="main-btn" onclick="startGame()">Play World</div>
     </div>
 
-    <!-- أداة التنشير والتحكم -->
     <div id="crosshair">+</div>
     
     <div id="instructions">
-        <b>التحكم:</b><br>
-        W, A, S, D : الحركة<br>
-        Space : النط / الطيران<br>
-        Shift : النزول للأسفل<br>
-        E : فتح / إغلاق الشنطة<br>
-        الماوس الأيسر : تكسير بلوكة<br>
-        الماوس الأيمن : وضع بلوكة
+        <b>تحكم الحركة:</b><br>
+        W / S : للأمام والخلف<br>
+        A / D : لليسار واليمين<br>
+        Space : نط / طيران للأعلى<br>
+        Shift : نزول للأسفل<br>
+        E : فتح الشنطة<br>
+        انقر على الشاشة لتفعيل تدوير الكاميرا
     </div>
 
-    <!-- شريط الأدوات السريع -->
+    <div id="gameUI">
+        <div class="main-btn" style="width:120px; padding:5px; font-size:14px; background:#e74c3c; color:#fff;" onclick="exitGame()">Exit World</div>
+    </div>
+
     <div id="hotbar">
-        <div class="hotbar-slot active" onclick="selectBlock(0x8b5a2b)">Dirt</div>
-        <div class="hotbar-slot" onclick="selectBlock(0x55aa55)">Grass</div>
-        <div class="hotbar-slot" onclick="selectBlock(0x808080)">Stone</div>
-        <div class="hotbar-slot" onclick="selectBlock(0xa52a2a)">Wood</div>
+        <div class="hotbar-slot active" onclick="selectColor(0x8b5a2b)">Dirt</div>
+        <div class="hotbar-slot" onclick="selectColor(0x55aa55)">Grass</div>
+        <div class="hotbar-slot" onclick="selectColor(0x808080)">Stone</div>
+        <div class="hotbar-slot" onclick="selectColor(0xa52a2a)">Wood</div>
     </div>
 
-    <!-- الشنطة Inventory -->
     <div id="inventoryModal">
-        <h3 style="text-align:center;">INVENTORY (الشنطة)</h3>
+        <h3 style="text-align:center;">INVENTORY</h3>
         <div class="inv-grid">
-            <div class="inv-item" onclick="selectBlock(0x8b5a2b); toggleInventory();">Dirt</div>
-            <div class="inv-item" onclick="selectBlock(0x55aa55); toggleInventory();">Grass</div>
-            <div class="inv-item" onclick="selectBlock(0x808080); toggleInventory();">Stone</div>
-            <div class="inv-item" onclick="selectBlock(0xa52a2a); toggleInventory();">Wood</div>
-            <div class="inv-item" onclick="selectBlock(0xff0000); toggleInventory();">Red</div>
-            <div class="inv-item" onclick="selectBlock(0x0000ff); toggleInventory();">Blue</div>
+            <div class="inv-item" onclick="selectColor(0x8b5a2b); toggleInventory();">Dirt</div>
+            <div class="inv-item" onclick="selectColor(0x55aa55); toggleInventory();">Grass</div>
+            <div class="inv-item" onclick="selectColor(0x808080); toggleInventory();">Stone</div>
+            <div class="inv-item" onclick="selectColor(0xa52a2a); toggleInventory();">Wood</div>
+            <div class="inv-item" onclick="selectColor(0xff0000); toggleInventory();">Red</div>
+            <div class="inv-item" onclick="selectColor(0x0000ff); toggleInventory();">Blue</div>
         </div>
     </div>
 
     <canvas id="gameCanvas" style="display:none;"></canvas>
 
     <script>
-        let scene, camera, renderer;
+        let scene, camera, renderer, raycaster;
+        let blocks = [];
         let selectedColor = 0x8b5a2b;
-        let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false, moveUp = false, moveDown = false;
+        let moveF = false, moveB = false, moveL = false, moveR = false, moveUp = false, moveDown = false;
         let isInventoryOpen = false;
+
+        let yaw = 0, pitch = 0;
+        let isPointerLocked = false;
 
         function startGame() {
             document.getElementById('menuScreen').style.display = 'none';
             document.getElementById('gameCanvas').style.display = 'block';
-            document.getElementById('crosshair').style.display = 'flex';
+            document.getElementById('crosshair').style.display = 'block';
             document.getElementById('hotbar').style.display = 'flex';
             document.getElementById('instructions').style.display = 'block';
+            document.getElementById('gameUI').style.display = 'block';
 
-            init3D();
+            initEngine();
         }
 
-        function init3D() {
+        function initEngine() {
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x87ceeb);
 
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 3, 8);
+            camera.position.set(0, 3, 5);
 
             const canvas = document.getElementById('gameCanvas');
             renderer = new THREE.WebGLRenderer({ canvas: canvas });
             renderer.setSize(window.innerWidth, window.innerHeight);
+
+            raycaster = new THREE.Raycaster();
 
             const light = new THREE.DirectionalLight(0xffffff, 1);
             light.position.set(10, 20, 10).normalize();
             scene.add(light);
             scene.add(new THREE.AmbientLight(0x777777));
 
-            // أرضية العالم
+            // أرضية
             const floorGeo = new THREE.PlaneGeometry(100, 100);
             const floorMat = new THREE.MeshLambertMaterial({ color: 0x55aa55 });
             const floor = new THREE.Mesh(floorGeo, floorMat);
             floor.rotation.x = -Math.PI / 2;
             scene.add(floor);
 
-            // إضافة بعض البلوكات الافتراضية
+            // بلوكات أولية
             const blockGeo = new THREE.BoxGeometry(1, 1, 1);
-            for(let x = -5; x <= 5; x += 2) {
-                for(let z = -5; z <= 5; z += 2) {
+            for(let x = -4; x <= 4; x += 2) {
+                for(let z = -4; z <= 4; z += 2) {
                     const blockMat = new THREE.MeshLambertMaterial({ color: 0x8b5a2b });
                     const block = new THREE.Mesh(blockGeo, blockMat);
                     block.position.set(x, 0.5, z);
                     scene.add(block);
+                    blocks.push(block);
                 }
             }
 
-            // التحكم بلوحة المفاتيح
+            // قفل الماوس للتحكم بالكاميرا
+            canvas.addEventListener('click', () => {
+                if(!isInventoryOpen) canvas.requestPointerLock();
+            });
+
+            document.addEventListener('pointerlockchange', () => {
+                isPointerLocked = (document.pointerLockElement === canvas);
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (isPointerLocked) {
+                    yaw -= e.movementX * 0.002;
+                    pitch -= e.movementY * 0.002;
+                    pitch = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, pitch));
+                    
+                    camera.rotation.order = "YXZ";
+                    camera.rotation.y = yaw;
+                    camera.rotation.x = pitch;
+                }
+            });
+
+            // لوحة المفاتيح
             document.addEventListener('keydown', (e) => {
-                if (e.code === 'KeyW') moveForward = true;
-                if (e.code === 'KeyS') moveBackward = true;
-                if (e.code === 'KeyA') moveLeft = true;
-                if (e.code === 'KeyD') moveRight = true;
+                if (e.code === 'KeyW') moveF = true;
+                if (e.code === 'KeyS') moveB = true;
+                if (e.code === 'KeyA') moveL = true;
+                if (e.code === 'KeyD') moveR = true;
                 if (e.code === 'Space') moveUp = true;
                 if (e.code === 'ShiftLeft') moveDown = true;
                 if (e.code === 'KeyE') toggleInventory();
             });
 
             document.addEventListener('keyup', (e) => {
-                if (e.code === 'KeyW') moveForward = false;
-                if (e.code === 'KeyS') moveBackward = false;
-                if (e.code === 'KeyA') moveLeft = false;
-                if (e.code === 'KeyD') moveRight = false;
+                if (e.code === 'KeyW') moveF = false;
+                if (e.code === 'KeyS') moveB = false;
+                if (e.code === 'KeyA') moveL = false;
+                if (e.code === 'KeyD') moveR = false;
                 if (e.code === 'Space') moveUp = false;
                 if (e.code === 'ShiftLeft') moveDown = false;
             });
 
-            // تحريك الكاميرا واللاعب
+            // بناء وتكسير بالماوس
+            window.addEventListener('mousedown', (e) => {
+                if (!isPointerLocked) return;
+                
+                raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+                const intersects = raycaster.intersectObjects([...blocks, floor]);
+
+                if (intersects.length > 0) {
+                    const hit = intersects[0];
+                    if (e.button === 0 && hit.object !== floor) {
+                        // تكسير البلوكة (زر أيسر)
+                        scene.remove(hit.object);
+                        blocks = blocks.filter(b => b !== hit.object);
+                    } else if (e.button === 2) {
+                        // بناء بلوكة (زر أيمن)
+                        const newBlockGeo = new THREE.BoxGeometry(1, 1, 1);
+                        const newBlockMat = new THREE.MeshLambertMaterial({ color: selectedColor });
+                        const newBlock = new THREE.Mesh(newBlockGeo, newBlockMat);
+                        
+                        const pos = hit.point.add(hit.face.normal.clone().multiplyScalar(0.5));
+                        newBlock.position.set(Math.floor(pos.x) + 0.5, Math.floor(pos.y) + 0.5, Math.floor(pos.z) + 0.5);
+                        
+                        scene.add(newBlock);
+                        blocks.push(newBlock);
+                    }
+                }
+            });
+
+            window.addEventListener('contextmenu', e => e.preventDefault());
+
             function animate() {
                 requestAnimationFrame(animate);
 
-                const speed = 0.15;
-                if (moveForward) camera.position.z -= speed;
-                if (moveBackward) camera.position.z += speed;
-                if (moveLeft) camera.position.x -= speed;
-                if (moveRight) camera.position.x += speed;
+                const speed = 0.12;
+                const dir = new THREE.Vector3();
+                camera.getWorldDirection(dir);
+                dir.y = 0;
+                dir.normalize();
+
+                const sideDir = new THREE.Vector3().crossVectors(camera.up, dir).normalize();
+
+                if (moveF) camera.position.addScaledVector(dir, speed);
+                if (moveB) camera.position.addScaledVector(dir, -speed);
+                if (moveL) camera.position.addScaledVector(sideDir, speed);
+                if (moveR) camera.position.addScaledVector(sideDir, -speed);
                 if (moveUp) camera.position.y += speed;
                 if (moveDown) camera.position.y -= speed;
 
@@ -225,10 +266,15 @@
         function toggleInventory() {
             isInventoryOpen = !isInventoryOpen;
             document.getElementById('inventoryModal').style.display = isInventoryOpen ? 'block' : 'none';
+            if (isInventoryOpen) document.exitPointerLock();
         }
 
-        function selectBlock(colorHex) {
+        function selectColor(colorHex) {
             selectedColor = colorHex;
+        }
+
+        function exitGame() {
+            location.reload();
         }
     </script>
 </body>
