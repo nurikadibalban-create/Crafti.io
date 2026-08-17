@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crafti.io - 1000 Blocks Edition</title>
+    <title>Crafti.io - True Infinite World</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; user-select: none; }
         body { background: #111; height: 100vh; overflow: hidden; }
 
-        /* اللوبي */
         #lobbyScreen {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
@@ -32,7 +31,6 @@
         }
         .btn-start:hover { background: #16a34a; }
 
-        /* الشنطة الـ 1000 بلوك */
         #inventory {
             display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 80vw; height: 80vh; background: rgba(15, 15, 15, 0.98); border: 3px solid #00e5ff;
@@ -57,13 +55,13 @@
 <body>
 
     <div id="lobbyScreen">
-        <h1 class="lobby-title">Crafti.io (1000 Blocks)</h1>
+        <h1 class="lobby-title">Crafti.io (Infinite World)</h1>
         <div class="menu-card">
             <div class="field-group">
                 <label>نوع العالم (World Type):</label>
                 <select id="worldType" class="select-box">
                     <option value="infinite_flat">Flat (مسطح لا نهائي)</option>
-                    <option value="infinite_terrain">Infinite (عالم لا نهائي وتضاريس)</option>
+                    <option value="infinite_terrain">Infinite Terrain (تضاريس لا نهائية)</option>
                 </select>
             </div>
 
@@ -89,7 +87,7 @@
 
     <div id="inventory">
         <div class="inv-header">
-            <h2 style="color:#00e5ff;">حقيبة الـ 1000 بلوك (Minecraft & MineFun)</h2>
+            <h2 style="color:#00e5ff;">حقيبة الـ 1000 بلوك</h2>
             <span style="color:#aaa;">اضغط E للإغلاق</span>
         </div>
         <div class="inv-grid" id="invGrid"></div>
@@ -98,7 +96,6 @@
     <div id="canvas-container"></div>
 
     <script>
-        // مولد الـ 1000 بلوك تلقائياً بالتكستشرات والألوان المتنوعة
         const all1000Blocks = [];
         const baseNames = ['Grass', 'Dirt', 'Stone', 'Cobble', 'Plank', 'Brick', 'Diamond', 'Gold', 'Iron', 'Coal', 'Emerald', 'Lapis', 'Redstone', 'Obsidian', 'Glass', 'Wool', 'Concrete', 'Terracotta', 'Sand', 'Gravel'];
 
@@ -106,22 +103,16 @@
             const baseIndex = (i - 1) % baseNames.length;
             const name = `${baseNames[baseIndex]} #${i}`;
             
-            // توليد لون وتكستشر فريد لكل بلوك
             const canvas = document.createElement('canvas');
             canvas.width = 16; canvas.height = 16;
             const ctx = canvas.getContext('2d');
 
-            const hue = (i * 137.5) % 360; // توزيع الألوان بكسل
+            const hue = (i * 137.5) % 360;
             ctx.fillStyle = `hsl(${hue}, 60%, 45%)`;
             ctx.fillRect(0, 0, 16, 16);
 
-            // نمط الخامة (Pixel Noise)
             ctx.fillStyle = `hsl(${hue}, 70%, 30%)`;
             for (let j = 0; j < 35; j++) {
-                ctx.fillRect(Math.floor(Math.random() * 16), Math.floor(Math.random() * 16), 1, 1);
-            }
-            ctx.fillStyle = `hsl(${hue}, 80%, 65%)`;
-            for (let j = 0; j < 15; j++) {
                 ctx.fillRect(Math.floor(Math.random() * 16), Math.floor(Math.random() * 16), 1, 1);
             }
 
@@ -132,7 +123,6 @@
 
         let selectedBlock = all1000Blocks[0];
 
-        // تعبئة الـ 1000 بلوك في الشنطة
         const invGrid = document.getElementById('invGrid');
         all1000Blocks.forEach((b) => {
             const div = document.createElement('div');
@@ -154,6 +144,9 @@
         let isPointerLocked = false;
         const container = document.getElementById('canvas-container');
 
+        const CHUNK_SIZE = 16;
+        const RENDER_DISTANCE = 4; // توسيع مدى التوليد بشكل كبير حول اللاعب
+
         function enterGame() {
             const worldType = document.getElementById('worldType').value;
             const gameMode = document.getElementById('gameMode').value;
@@ -172,7 +165,7 @@
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x87ceeb);
 
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             container.appendChild(renderer.domElement);
@@ -180,14 +173,15 @@
             raycaster = new THREE.Raycaster();
             scene.add(new THREE.AmbientLight(0xffffff, 1.1));
 
-            camera.position.set(0, 5, 0);
+            camera.position.set(0, 10, 0);
 
+            // دالة توليد الأجزاء (Chunks) المستمرة مع حركة اللاعب
             function updateWorldChunks() {
-                const pX = Math.floor(camera.position.x / 8);
-                const pZ = Math.floor(camera.position.z / 8);
+                const pX = Math.floor(camera.position.x / CHUNK_SIZE);
+                const pZ = Math.floor(camera.position.z / CHUNK_SIZE);
 
-                for (let x = pX - 2; x <= pX + 2; x++) {
-                    for (let z = pZ - 2; z <= pZ + 2; z++) {
+                for (let x = pX - RENDER_DISTANCE; x <= pX + RENDER_DISTANCE; x++) {
+                    for (let z = pZ - RENDER_DISTANCE; z <= pZ + RENDER_DISTANCE; z++) {
                         const key = `${x},${z}`;
                         if (!loadedChunks[key]) {
                             generateChunk(x, z, worldType);
@@ -198,17 +192,26 @@
             }
 
             function generateChunk(cx, cz, type) {
-                for (let x = 0; x < 8; x++) {
-                    for (let z = 0; z < 8; z++) {
-                        const wX = cx * 8 + x;
-                        const wZ = cz * 8 + z;
+                const instancedGeo = new THREE.BoxGeometry(1, 1, 1);
+                
+                for (let x = 0; x < CHUNK_SIZE; x++) {
+                    for (let z = 0; z < CHUNK_SIZE; z++) {
+                        const wX = cx * CHUNK_SIZE + x;
+                        const wZ = cz * CHUNK_SIZE + z;
                         
                         if (type === 'infinite_flat') {
                             addBlockMesh(wX, 0, wZ, all1000Blocks[0]);
+                            addBlockMesh(wX, -1, wZ, all1000Blocks[1]);
+                            addBlockMesh(wX, -2, wZ, all1000Blocks[2]);
                         } else {
-                            let height = Math.floor(Math.sin(wX * 0.2) * Math.cos(wZ * 0.2) * 3);
-                            addBlockMesh(wX, height, wZ, all1000Blocks[0]);
-                            addBlockMesh(wX, height - 1, wZ, all1000Blocks[1]);
+                            // معادلة تضاريس ممتدة ومستمرة بدون انقطاع
+                            let height = Math.floor(Math.sin(wX * 0.08) * Math.cos(wZ * 0.08) * 6 + Math.sin(wX * 0.03) * 4);
+                            
+                            addBlockMesh(wX, height, wZ, all1000Blocks[0]); // العشب في الأعلى
+                            for (let h = height - 1; h >= height - 3; h--) {
+                                addBlockMesh(wX, h, wZ, all1000Blocks[1]); // الطين
+                            }
+                            addBlockMesh(wX, height - 4, wZ, all1000Blocks[2]); // الحجر
                         }
                     }
                 }
@@ -275,7 +278,7 @@
             function animate() {
                 requestAnimationFrame(animate);
                 if (isPointerLocked) {
-                    const speed = keys['ShiftLeft'] ? 0.22 : 0.12;
+                    const speed = keys['ShiftLeft'] ? 0.25 : 0.12;
                     const dir = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
                     const side = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
 
@@ -286,6 +289,7 @@
                     if (keys['Space']) camera.position.y += speed;
                     if (keys['KeyC']) camera.position.y -= speed;
 
+                    // تحديث توليد الأجزاء باستمرار
                     updateWorldChunks();
                 }
                 renderer.render(scene, camera);
