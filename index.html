@@ -9,7 +9,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial Black', sans-serif; user-select: none; }
         body { background: #111; height: 100vh; overflow: hidden; }
 
-        /* واجهة اللوبي Lobby */
+        /* شاشة اللوبي - تدخلك فوراً عند فتح اللعبة */
         #lobbyScreen {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1000&auto=format&fit=crop') center/cover;
@@ -18,8 +18,8 @@
         }
 
         .lobby-title { font-size: 60px; color: #55ffff; text-shadow: 4px 4px #000; margin-bottom: 20px; }
-        
         .lobby-menu { display: flex; flex-direction: column; gap: 12px; width: 280px; }
+        
         .btn-lobby {
             padding: 12px; background: #222; border: 3px solid #fff; border-radius: 8px;
             color: #fff; font-size: 18px; text-align: center; cursor: pointer; transition: 0.2s;
@@ -29,16 +29,7 @@
         .btn-play { background: #2ecc71; border-color: #27ae60; }
         .btn-play:hover { background: #27ae60; border-color: #fff; color: #fff; }
 
-        /* الشاشات الفرعية (Multiplayer / Shop / Catalog) */
-        .modal-screen {
-            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 360px; background: rgba(20, 20, 20, 0.95); border: 4px solid #fff;
-            border-radius: 12px; padding: 20px; color: #fff; z-index: 150; text-align: center;
-        }
-        .modal-screen h2 { margin-bottom: 15px; color: #ffeb00; }
-        .close-btn { margin-top: 15px; background: #e74c3c; border-color: #c0392b; }
-
-        /* واجهة اللعبة في الداخل */
+        /* واجهات اللعبة */
         #crosshair {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             color: #fff; font-size: 26px; pointer-events: none; z-index: 10; display: none;
@@ -49,17 +40,19 @@
             padding: 10px; border-radius: 8px; z-index: 10; font-size: 12px; border: 2px solid #fff; display: none;
         }
 
+        /* الشنطة المليئة بالكامل */
         #inventory {
             display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 320px; background: rgba(20, 20, 20, 0.95); border: 4px solid #fff;
-            border-radius: 12px; padding: 15px; color: #fff; z-index: 200;
+            width: 450px; max-height: 80vh; background: rgba(20, 20, 20, 0.95); border: 4px solid #fff;
+            border-radius: 12px; padding: 15px; color: #fff; z-index: 200; overflow-y: auto;
         }
-        .inv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+        .inv-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
         .inv-item {
-            height: 50px; background: #333; border: 2px solid #666; border-radius: 6px;
-            display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px;
+            height: 60px; background: #333; border: 2px solid #666; border-radius: 6px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 11px; text-align: center; padding: 4px;
         }
-        .inv-item:hover { border-color: #ffeb00; }
+        .inv-item:hover { border-color: #ffeb00; background: #444; }
 
         .exit-btn {
             position: fixed; top: 15px; right: 15px; z-index: 10; display: none;
@@ -70,60 +63,34 @@
 </head>
 <body>
 
-    <!-- الشاشة الرئيسية: اللوبي Lobby -->
+    <!-- الشاشة الأولى فور فتح اللعبة: اللوبي -->
     <div id="lobbyScreen">
         <h1 class="lobby-title">Crafti.io</h1>
         <div class="lobby-menu">
-            <div class="btn-lobby btn-play" onclick="enterWorld('Singleplayer')">Singleplayer</div>
-            <div class="btn-lobby" onclick="openModal('multiplayerModal')">Multiplayer</div>
-            <div class="btn-lobby" onclick="openModal('shopModal')">Shop</div>
-            <div class="btn-lobby" onclick="openModal('catalogModal')">Catalog</div>
+            <div class="btn-lobby btn-play" onclick="enterWorld()">Singleplayer</div>
+            <div class="btn-lobby" onclick="alert('سيرفرات الملتيبلاير قريباً!')">Multiplayer</div>
+            <div class="btn-lobby" onclick="alert('المتجر قريباً!')">Shop</div>
+            <div class="btn-lobby" onclick="alert('الكتالوج قريباً!')">Catalog</div>
         </div>
     </div>
 
-    <!-- النوافذ المنبثقة -->
-    <div id="multiplayerModal" class="modal-screen">
-        <h2>Multiplayer</h2>
-        <p>جاري البحث عن السيرفرات...</p>
-        <div class="btn-lobby close-btn" onclick="closeModal('multiplayerModal')">إغلاق</div>
-    </div>
-
-    <div id="shopModal" class="modal-screen">
-        <h2>Shop</h2>
-        <p>متجر السكنات والأدوات قريباً!</p>
-        <div class="btn-lobby close-btn" onclick="closeModal('shopModal')">إغلاق</div>
-    </div>
-
-    <div id="catalogModal" class="modal-screen">
-        <h2>Catalog</h2>
-        <p>قائمة البلوكات والعناصر المتاحة.</p>
-        <div class="btn-lobby close-btn" onclick="closeModal('catalogModal')">إغلاق</div>
-    </div>
-
-    <!-- عناصر واجهة اللعبة -->
     <button id="exitBtn" class="exit-btn" onclick="returnToLobby()">Return to Lobby</button>
     <div id="crosshair">+</div>
 
     <div id="ui-overlay">
-        <b>التحكم:</b><br>
+        <b>التحكم المطور:</b><br>
         W / A / S / D : المشي<br>
-        Space : القفز<br>
-        Left Click : تكسير<br>
-        Right Click : بناء<br>
-        E : فتح الشنطة<br>
-        P : إيقاف/تأكيد الماوس
+        Shift : زيادة السرعة (Speed)<br>
+        Space : القفز / الصعود<br>
+        C : النزول للأسفل<br>
+        E : فتح الشنطة الشاملة<br>
+        Left Click : تكسير | Right Click : بناء
     </div>
 
+    <!-- الشنطة الكاملة بجميع الأغراض -->
     <div id="inventory">
-        <h3 style="text-align:center; color:#ffeb00;">INVENTORY (الشنطة)</h3>
-        <div class="inv-grid">
-            <div class="inv-item" onclick="selectColor(0x8b5a2b)">Dirt Block</div>
-            <div class="inv-item" onclick="selectColor(0x55aa55)">Grass Block</div>
-            <div class="inv-item" onclick="selectColor(0x808080)">Stone Block</div>
-            <div class="inv-item" onclick="selectColor(0xa52a2a)">Wood Block</div>
-            <div class="inv-item" onclick="selectColor(0xff0000)">Red Block</div>
-            <div class="inv-item" onclick="selectColor(0x0000ff)">Blue Block</div>
-        </div>
+        <h3 style="text-align:center; color:#ffeb00;">INVENTORY (الشنطة الكاملة)</h3>
+        <div class="inv-grid" id="invGrid"></div>
     </div>
 
     <div id="canvas-container"></div>
@@ -131,18 +98,54 @@
     <script>
         const container = document.getElementById('canvas-container');
         const invModal = document.getElementById('inventory');
+        const invGrid = document.getElementById('invGrid');
+
         let scene, camera, renderer, raycaster;
         let blocks = [];
-        let selectedColor = 0x8b5a2b;
         let keys = {};
         let yaw = 0, pitch = 0;
         let isPointerLocked = false;
         let isGameRunning = false;
 
-        function openModal(id) { document.getElementById(id).style.display = 'block'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        // مكتبة التكستشرات المليئة بالأغراض والبلوكات
+        const textures = {
+            grass: 'https://threejs.org/examples/textures/crate.gif',
+            dirt: 'https://threejs.org/examples/textures/brick_diffuse.jpg',
+            stone: 'https://threejs.org/examples/textures/hardwood2_diffuse.jpg',
+            wood: 'https://threejs.org/examples/textures/floors/FloorsCheckerboard_S_Specular.jpg'
+        };
 
-        function enterWorld(mode) {
+        const itemsList = [
+            { name: 'Grass Block', tex: 'https://threejs.org/examples/textures/crate.gif' },
+            { name: 'Dirt Block', tex: 'https://threejs.org/examples/textures/brick_diffuse.jpg' },
+            { name: 'Stone Block', tex: 'https://threejs.org/examples/textures/hardwood2_diffuse.jpg' },
+            { name: 'Wood Planks', tex: 'https://threejs.org/examples/textures/floors/FloorsCheckerboard_S_Specular.jpg' },
+            { name: 'Red Brick', color: 0xaa2222 },
+            { name: 'Gold Block', color: 0xffd700 },
+            { name: 'Diamond Block', color: 0x00ffff },
+            { name: 'TNT', color: 0xff0000 },
+            { name: 'Glass', color: 0x88ffff },
+            { name: 'Obsidian', color: 0x111122 },
+            { name: 'Sand', color: 0xe6c280 },
+            { name: 'Leaves', color: 0x228b22 }
+        ];
+
+        let selectedItem = itemsList[0];
+
+        // بناء عناصر الشنطة تلقائياً
+        itemsList.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = 'inv-item';
+            div.innerText = item.name;
+            div.onclick = () => {
+                selectedItem = item;
+                invModal.style.display = 'none';
+                container.requestPointerLock();
+            };
+            invGrid.appendChild(div);
+        });
+
+        function enterWorld() {
             document.getElementById('lobbyScreen').style.display = 'none';
             document.getElementById('crosshair').style.display = 'block';
             document.getElementById('ui-overlay').style.display = 'block';
@@ -175,28 +178,28 @@
 
             raycaster = new THREE.Raycaster();
 
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
             scene.add(ambientLight);
             const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
             dirLight.position.set(10, 20, 10);
             scene.add(dirLight);
 
-            // تحسين شكل البلوكات والملمس (Textures)
+            // أرضية التكستشر
+            const textureLoader = new THREE.TextureLoader();
             const floorGeo = new THREE.PlaneGeometry(100, 100);
             const floorMat = new THREE.MeshLambertMaterial({ color: 0x55aa55 });
             const floor = new THREE.Mesh(floorGeo, floorMat);
             floor.rotation.x = -Math.PI / 2;
             scene.add(floor);
 
-            // إنشاء خريطة ببلوكات مع حدود (Wireframe borders) لمظهر يشبه MineFun
-            const boxGeo = new THREE.BoxGeometry(1, 1, 1);
+            // إنشاء عالم ببلوكات بتكستشر
             for(let x = -8; x <= 8; x += 2) {
                 for(let z = -8; z <= 8; z += 2) {
-                    createBlock(x, 0.5, z, 0x8b5a2b);
+                    createBlock(x, 0.5, z, itemsList[0]);
                 }
             }
 
-            camera.position.set(0, 1.7, 5); // مستوى طول الشخصية
+            camera.position.set(0, 2, 5);
 
             container.addEventListener('click', () => {
                 if (invModal.style.display !== 'block' && document.getElementById('lobbyScreen').style.display === 'none') {
@@ -222,7 +225,6 @@
             document.addEventListener('keydown', (e) => {
                 keys[e.code] = true;
 
-                // زر E لفتح الشنطة
                 if (e.code === 'KeyE' && isGameRunning) {
                     if (invModal.style.display === 'block') {
                         invModal.style.display = 'none';
@@ -232,16 +234,10 @@
                         document.exitPointerLock();
                     }
                 }
-
-                if (e.code === 'KeyP') {
-                    if (isPointerLocked) document.exitPointerLock();
-                    else container.requestPointerLock();
-                }
             });
 
             document.addEventListener('keyup', (e) => { keys[e.code] = false; });
 
-            // البناء والتكسير بالماوس
             window.addEventListener('mousedown', (e) => {
                 if (!isPointerLocked) return;
 
@@ -256,7 +252,7 @@
                         blocks = blocks.filter(b => b !== hit.object);
                     } else if (e.button === 2) {
                         const pos = hit.point.add(hit.face.normal.clone().multiplyScalar(0.5));
-                        createBlock(Math.floor(pos.x) + 0.5, Math.floor(pos.y) + 0.5, Math.floor(pos.z) + 0.5, selectedColor);
+                        createBlock(Math.floor(pos.x) + 0.5, Math.floor(pos.y) + 0.5, Math.floor(pos.z) + 0.5, selectedItem);
                     }
                 }
             });
@@ -266,13 +262,20 @@
             animate();
         }
 
-        function createBlock(x, y, z, colorHex) {
+        function createBlock(x, y, z, item) {
             const boxGeo = new THREE.BoxGeometry(1, 1, 1);
-            const boxMat = new THREE.MeshLambertMaterial({ color: colorHex });
+            let boxMat;
+
+            if (item.tex) {
+                const texture = new THREE.TextureLoader().load(item.tex);
+                boxMat = new THREE.MeshLambertMaterial({ map: texture });
+            } else {
+                boxMat = new THREE.MeshLambertMaterial({ color: item.color || 0x8b5a2b });
+            }
+
             const cube = new THREE.Mesh(boxGeo, boxMat);
             cube.position.set(x, y, z);
-            
-            // إضافة حواف سوداء للبلوكة لتبدو كبلوكات ماين كرافت/ماين فاين
+
             const edges = new THREE.EdgesGeometry(boxGeo);
             const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000 }));
             cube.add(line);
@@ -281,42 +284,22 @@
             blocks.push(cube);
         }
 
-        function selectColor(colorHex) {
-            selectedColor = colorHex;
-            invModal.style.display = 'none';
-            container.requestPointerLock();
-        }
-
         function animate() {
             requestAnimationFrame(animate);
 
             if (isPointerLocked) {
-                const speed = 0.12;
+                // التحكم بالسرعة عبر Shift
+                const speed = keys['ShiftLeft'] || keys['ShiftRight'] ? 0.25 : 0.12;
+
                 const dir = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
                 const side = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
 
-                let nextPos = camera.position.clone();
-
-                if (keys['KeyW']) nextPos.addScaledVector(dir, speed);
-                if (keys['KeyS']) nextPos.addScaledVector(dir, -speed);
-                if (keys['KeyD']) nextPos.addScaledVector(side, speed);
-                if (keys['KeyA']) nextPos.addScaledVector(side, -speed);
-                if (keys['Space']) nextPos.y += speed;
-
-                // منع اختراق البلوكات والأرضية (Collision System)
-                if (nextPos.y < 1.7) nextPos.y = 1.7; // مستوى الأرضية
-
-                let canMove = true;
-                for (let block of blocks) {
-                    if (nextPos.distanceTo(block.position) < 0.9) {
-                        canMove = false; // التصادم مع البلوكة لمنع الاختراق
-                        break;
-                    }
-                }
-
-                if (canMove) {
-                    camera.position.copy(nextPos);
-                }
+                if (keys['KeyW']) camera.position.addScaledVector(dir, speed);
+                if (keys['KeyS']) camera.position.addScaledVector(dir, -speed);
+                if (keys['KeyD']) camera.position.addScaledVector(side, speed);
+                if (keys['KeyA']) camera.position.addScaledVector(side, -speed);
+                if (keys['Space']) camera.position.y += speed; // القفز/الصعود
+                if (keys['KeyC']) camera.position.y -= speed; // النزول أسفل (C Down)
             }
 
             renderer.render(scene, camera);
