@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crafti.io - Fast & Optimized</title>
+    <title>Crafti.io - Fast With Mobs</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; user-select: none; }
@@ -11,16 +11,16 @@
 
         #lobbyScreen {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #1e1e24; display: flex; flex-direction: column; 
+            background: #18181c; display: flex; flex-direction: column; 
             align-items: center; justify-content: center; z-index: 500; color: #fff;
         }
 
         .lobby-title { font-size: 42px; color: #00e5ff; margin-bottom: 20px; text-shadow: 2px 2px #000; }
-        .menu-card { background: #2b2b36; border: 2px solid #00e5ff; padding: 20px; border-radius: 10px; width: 300px; display: flex; flex-direction: column; gap: 15px; }
+        .menu-card { background: #23232a; border: 2px solid #00e5ff; padding: 25px; border-radius: 12px; width: 320px; display: flex; flex-direction: column; gap: 15px; }
 
         .btn-start {
             padding: 12px; background: #22c55e; border: none; border-radius: 6px;
-            color: #fff; font-size: 18px; font-weight: bold; cursor: pointer;
+            color: #fff; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s;
         }
         .btn-start:hover { background: #16a34a; }
 
@@ -32,38 +32,39 @@
 <body>
 
     <div id="lobbyScreen">
-        <h1 class="lobby-title">Crafti.io Pro</h1>
+        <h1 class="lobby-title">Crafti.io Ultra + Mobs</h1>
         <div class="menu-card">
-            <button class="btn-start" onclick="enterGame()">ابدأ اللعب (سريع وخفيف)</button>
+            <button class="btn-start" onclick="enterGame()">ابدأ اللعب (حركة سلسة + Mobs)</button>
         </div>
     </div>
 
     <button id="exitBtn" class="exit-btn" onclick="location.reload()">العودة للقائمة</button>
     <div id="crosshair">+</div>
-    <div id="ui-overlay">WASD: تحرك | Space/C: صعود ونزول | كليك يسار: هدم | كليك يمين: بناء</div>
+    <div id="ui-overlay">WASD: تحرك سلس | Space: صعود | Shift: تسريع</div>
 
     <div id="canvas-container"></div>
 
     <script>
-        let scene, camera, renderer, raycaster;
+        let scene, camera, renderer;
         let keys = {};
         let yaw = 0, pitch = 0;
         let isPointerLocked = false;
         const container = document.getElementById('canvas-container');
 
-        const BLOCK_SIZE = 1;
-        const WORLD_SIZE = 32; // حجم العالم محسن للأداء الفائق
+        const WORLD_SIZE = 28;
         let blockPositions = new Set();
-        let instancedMeshes = {};
         let mobs = [];
+        
+        let velocity = new THREE.Vector3();
+        let clock = new THREE.Clock();
 
-        // خامات البلوكات
         const materials = {
             grass: new THREE.MeshBasicMaterial({ color: 0x4caf50 }),
             dirt: new THREE.MeshBasicMaterial({ color: 0x795548 }),
-            stone: new THREE.MeshBasicMaterial({ color: 0x9e9e9e }),
+            stone: new THREE.MeshBasicMaterial({ color: 0x888888 }),
             wood: new THREE.MeshBasicMaterial({ color: 0x5d4037 }),
             leaves: new THREE.MeshBasicMaterial({ color: 0x2e7d32 }),
+            mob: new THREE.MeshBasicMaterial({ color: 0xffa500 }) // لون الحيوانات/الكائنات
         };
 
         const boxGeo = new THREE.BoxGeometry(1, 1, 1);
@@ -82,16 +83,15 @@
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x87ceeb);
 
-            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 500);
-            renderer = new THREE.WebGLRenderer({ antialias: false }); // إلغاء المنعم للسرعة القصوى
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 300);
+            renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+            renderer.setPixelRatio(1);
             container.appendChild(renderer.domElement);
 
-            raycaster = new THREE.Raycaster();
             camera.position.set(WORLD_SIZE / 2, 12, WORLD_SIZE / 2);
 
-            generateSmoothWorld();
+            buildWorld();
 
             document.addEventListener('pointerlockchange', () => {
                 isPointerLocked = (document.pointerLockElement === container);
@@ -112,72 +112,82 @@
 
             function animate() {
                 requestAnimationFrame(animate);
+                
+                const delta = Math.min(clock.getDelta(), 0.1);
+
                 if (isPointerLocked) {
-                    const speed = keys['ShiftLeft'] ? 0.3 : 0.15;
-                    const dir = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+                    const moveDir = new THREE.Vector3();
+                    const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
                     const side = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
 
-                    let nextPos = camera.position.clone();
+                    if (keys['KeyW']) moveDir.add(forward);
+                    if (keys['KeyS']) moveDir.add(forward.clone().negate());
+                    if (keys['KeyD']) moveDir.add(side);
+                    if (keys['KeyA']) moveDir.add(side.clone().negate());
+                    
+                    moveDir.normalize();
 
-                    if (keys['KeyW']) nextPos.addScaledVector(dir, speed);
-                    if (keys['KeyS']) nextPos.addScaledVector(dir, -speed);
-                    if (keys['KeyD']) nextPos.addScaledVector(side, speed);
-                    if (keys['KeyA']) nextPos.addScaledVector(side, -speed);
-                    if (keys['Space']) nextPos.y += speed;
-                    if (keys['KeyC']) nextPos.y -= speed;
+                    const accel = keys['ShiftLeft'] ? 65.0 : 35.0;
+                    
+                    if (moveDir.lengthSq() > 0) {
+                        velocity.x += moveDir.x * accel * delta;
+                        velocity.z += moveDir.z * accel * delta;
+                    }
 
-                    // فحص الاصطدام البسيط
+                    if (keys['Space']) velocity.y += accel * delta;
+                    if (keys['KeyC']) velocity.y -= accel * delta;
+
+                    velocity.x -= velocity.x * 10.0 * delta;
+                    velocity.z -= velocity.z * 10.0 * delta;
+                    velocity.y -= velocity.y * 10.0 * delta;
+
+                    let nextPos = camera.position.clone().addScaledVector(velocity, delta);
+
                     const bX = Math.round(nextPos.x);
                     const bY = Math.round(nextPos.y);
                     const bZ = Math.round(nextPos.z);
 
                     if (!blockPositions.has(`${bX},${bY},${bZ}`)) {
                         camera.position.copy(nextPos);
+                    } else {
+                        velocity.set(0, 0, 0);
                     }
 
-                    // تحريك الحيوانات
-                    mobs.forEach(m => {
-                        m.position.x += Math.sin(Date.now() * 0.002) * 0.01;
+                    // تحريك الكائنات (Mobs) بطريقة خفيفة
+                    mobs.forEach((mob, i) => {
+                        mob.position.x += Math.sin(Date.now() * 0.001 + i) * 0.015;
+                        mob.position.z += Math.cos(Date.now() * 0.001 + i) * 0.015;
                     });
                 }
+
                 renderer.render(scene, camera);
             }
             animate();
         }
 
-        function generateSmoothWorld() {
+        function buildWorld() {
             const blocksData = { grass: [], dirt: [], stone: [], wood: [], leaves: [] };
 
             for (let x = 0; x < WORLD_SIZE; x++) {
                 for (let z = 0; z < WORLD_SIZE; z++) {
                     let height = Math.floor(Math.sin(x * 0.2) * 2 + Math.cos(z * 0.2) * 2 + 5);
 
-                    // سطح العشب
                     addBlockData('grass', x, height, z, blocksData);
 
-                    // تحت الأرض مع وجود كهوف
                     for (let y = height - 1; y >= 0; y--) {
-                        // معادلة الكهوف
-                        const isCave = (y < height - 1 && y > 1) && (Math.sin(x * 0.4 + y * 0.5 + z * 0.4) > 0.4);
+                        const isCave = (y < height - 1 && y > 1) && (Math.sin(x * 0.4 + y * 0.5 + z * 0.4) > 0.45);
                         if (!isCave) {
-                            const type = (y === height - 1) ? 'dirt' : 'stone';
-                            addBlockData(type, x, y, z, blocksData);
+                            addBlockData((y === height - 1) ? 'dirt' : 'stone', x, y, z, blocksData);
                         }
                     }
 
-                    // توليد الأشجار
-                    if (x > 3 && x < WORLD_SIZE - 3 && z > 3 && z < WORLD_SIZE - 3) {
-                        if (Math.random() < 0.02) {
-                            spawnTree(x, height + 1, z, blocksData);
-                        }
-                        if (Math.random() < 0.01) {
-                            spawnMob(x, height + 1, z);
-                        }
+                    if (x > 2 && x < WORLD_SIZE - 2 && z > 2 && z < WORLD_SIZE - 2) {
+                        if (Math.random() < 0.02) spawnTree(x, height + 1, z, blocksData);
+                        if (Math.random() < 0.015) spawnMob(x, height + 1, z); // إنشاء الكائنات
                     }
                 }
             }
 
-            // رسم البلوكات دفعة واحدة عبر InstancedMesh للأداء العالي
             Object.keys(blocksData).forEach(type => {
                 const list = blocksData[type];
                 if (list.length === 0) return;
@@ -211,13 +221,16 @@
         }
 
         function spawnMob(x, y, z) {
-            const mob = new THREE.Mesh(
-                new THREE.BoxGeometry(0.6, 0.6, 0.9),
-                new THREE.MeshBasicMaterial({ color: 0xffcc00 })
-            );
-            mob.position.set(x, y + 0.3, z);
-            scene.add(mob);
-            mobs.push(mob);
+            const mobGroup = new THREE.Group();
+            
+            // جسم الحيوان
+            const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.7, 1.0), materials.mob);
+            body.position.y = 0.5;
+            mobGroup.add(body);
+
+            mobGroup.position.set(x, y, z);
+            scene.add(mobGroup);
+            mobs.push(mobGroup);
         }
     </script>
 </body>
