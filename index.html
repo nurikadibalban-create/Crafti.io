@@ -3,163 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crafti.io - True Minecraft Edition</title>
+    <title>Crafti.io - 1000 Blocks Edition</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial', sans-serif; user-select: none; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; user-select: none; }
         body { background: #111; height: 100vh; overflow: hidden; }
 
-        /* اللوبي الرئيسي */
+        /* اللوبي */
         #lobbyScreen {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), 
-                        url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1920&auto=format&fit=crop') center/cover no-repeat;
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
+                        url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1920&auto=format&fit=crop') center/cover;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 100; color: #fff;
+            z-index: 500; color: #fff;
         }
 
-        .lobby-title { 
-            font-size: 56px; font-weight: 900; color: #62ebff; 
-            text-shadow: 3px 3px 0px #000; margin-bottom: 20px; 
+        .lobby-title { font-size: 52px; font-weight: 900; color: #00e5ff; text-shadow: 3px 3px 0 #000; margin-bottom: 20px; }
+        .menu-card { background: rgba(20, 20, 20, 0.95); border: 2px solid #00e5ff; padding: 25px; border-radius: 12px; width: 340px; display: flex; flex-direction: column; gap: 15px; }
+
+        .field-group { display: flex; flex-direction: column; gap: 5px; }
+        .field-group label { font-size: 14px; font-weight: bold; color: #bbb; }
+
+        .select-box { padding: 10px; background: #2a2a2a; color: #fff; border: 1px solid #555; border-radius: 6px; outline: none; font-size: 15px; }
+        
+        .btn-start {
+            padding: 12px; background: #22c55e; border: none; border-radius: 6px;
+            color: #fff; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s;
         }
+        .btn-start:hover { background: #16a34a; }
 
-        .lobby-menu, .setup-menu { display: flex; flex-direction: column; gap: 12px; width: 280px; }
-
-        .btn-lobby {
-            padding: 12px; background: #222; border: 2px solid #fff; border-radius: 6px;
-            color: #fff; font-size: 16px; font-weight: bold; text-align: center; cursor: pointer; transition: 0.2s;
-        }
-        .btn-lobby:hover { background: #444; border-color: #62ebff; }
-        .btn-play { background: #2ecc71; border-color: #fff; }
-        .btn-play:hover { background: #27ae60; }
-
-        .select-box {
-            padding: 10px; background: #333; color: #fff; border: 2px solid #fff;
-            border-radius: 6px; font-size: 14px; outline: none; cursor: pointer;
-        }
-
-        /* الشنطة */
+        /* الشنطة الـ 1000 بلوك */
         #inventory {
             display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 500px; background: rgba(30, 30, 30, 0.95); border: 3px solid #62ebff;
-            border-radius: 10px; padding: 20px; color: #fff; z-index: 200;
+            width: 80vw; height: 80vh; background: rgba(15, 15, 15, 0.98); border: 3px solid #00e5ff;
+            border-radius: 12px; padding: 20px; color: #fff; z-index: 600; overflow-y: auto;
         }
-        .inv-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
+        .inv-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 15px; }
+        .inv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
         .inv-item {
-            height: 80px; background: #222; border: 2px solid #555; border-radius: 6px;
+            height: 90px; background: #222; border: 2px solid #444; border-radius: 6px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            cursor: pointer; font-size: 12px; font-weight: bold; gap: 5px;
+            cursor: pointer; gap: 4px; transition: 0.15s; padding: 4px;
         }
-        .inv-item:hover { border-color: #62ebff; background: #333; }
-        .inv-icon { width: 32px; height: 32px; border-radius: 3px; }
+        .inv-item:hover { border-color: #00e5ff; background: #333; transform: scale(1.03); }
+        .inv-item img { width: 36px; height: 36px; image-rendering: pixelated; }
+        .inv-item span { font-size: 10px; font-weight: bold; text-align: center; color: #ccc; }
 
-        #crosshair { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 28px; pointer-events: none; z-index: 10; display: none; }
-        #ui-overlay { position: fixed; top: 15px; left: 15px; color: white; background: rgba(0,0,0,0.85); padding: 12px; border-radius: 8px; z-index: 10; font-size: 12px; border: 2px solid #fff; display: none; }
-        .exit-btn { position: fixed; top: 15px; right: 15px; z-index: 10; display: none; padding: 8px 16px; background: #ff4d4d; color: white; border: 2px solid #fff; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        #crosshair { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 26px; pointer-events: none; z-index: 100; display: none; }
+        #ui-overlay { position: fixed; top: 15px; left: 15px; color: white; background: rgba(0,0,0,0.85); padding: 12px 18px; border-radius: 8px; z-index: 100; font-size: 13px; border: 1px solid #555; display: none; }
+        .exit-btn { position: fixed; top: 15px; right: 15px; z-index: 100; display: none; padding: 8px 16px; background: #ef4444; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <!-- اللوبي الرئيسي -->
     <div id="lobbyScreen">
-        <h1 class="lobby-title">Crafti.io</h1>
-        
-        <!-- القائمة الأولى -->
-        <div class="lobby-menu" id="mainMenu">
-            <div class="btn-lobby btn-play" onclick="showSingleplayerSetup()">Singleplayer</div>
-            <div class="btn-lobby" onclick="alert('قريباً!')">Multiplayer</div>
-        </div>
+        <h1 class="lobby-title">Crafti.io (1000 Blocks)</h1>
+        <div class="menu-card">
+            <div class="field-group">
+                <label>نوع العالم (World Type):</label>
+                <select id="worldType" class="select-box">
+                    <option value="infinite_flat">Flat (مسطح لا نهائي)</option>
+                    <option value="infinite_terrain">Infinite (عالم لا نهائي وتضاريس)</option>
+                </select>
+            </div>
 
-        <!-- إعدادات السنجل بلاير -->
-        <div class="setup-menu" id="setupMenu" style="display: none;">
-            <label><b>نوع العالم (World Type):</b></label>
-            <select id="worldType" class="select-box">
-                <option value="flat">Flat (مسطح فارغ)</option>
-                <option value="normal">Normal (تضاريس وأشجار)</option>
-            </select>
+            <div class="field-group">
+                <label>نمط اللعب (Game Mode):</label>
+                <select id="gameMode" class="select-box">
+                    <option value="creative">Creative (إبداع - طيران وبناء)</option>
+                    <option value="survival">Survival (بقاء على قيد الحياة)</option>
+                </select>
+            </div>
 
-            <label><b>نمط اللعب (Game Mode):</b></label>
-            <select id="gameMode" class="select-box">
-                <option value="creative">Creative (بناء وتكسير لا نهائي)</option>
-                <option value="survival">Survival (بقاء)</option>
-            </select>
-
-            <div class="btn-lobby btn-play" onclick="enterWorld()">Start Game</div>
-            <div class="btn-lobby" onclick="hideSingleplayerSetup()" style="background:#555;">Back</div>
+            <button class="btn-start" onclick="enterGame()">ابدأ اللعب</button>
         </div>
     </div>
 
-    <button id="exitBtn" class="exit-btn" onclick="returnToLobby()">Return to Lobby</button>
+    <button id="exitBtn" class="exit-btn" onclick="location.reload()">Return to Lobby</button>
     <div id="crosshair">+</div>
 
     <div id="ui-overlay">
-        <b>التحكم:</b><br>
-        WASD : حركة | Shift : سرعة<br>
-        Space : صعود | C : نزول<br>
-        E : الشنطة | Mode: <span id="modeDisplay">Creative</span>
+        <b>التحكم:</b> WASD تحرك | Space صعود | C نزول<br>
+        E: فتح الشنطة (1000 بلوك) | Mode: <span id="modeDisplay" style="color:#00e5ff;"></span>
     </div>
 
-    <!-- الشنطة -->
     <div id="inventory">
-        <h3 style="text-align:center; color:#62ebff;">اختر البلوك (Inventory)</h3>
+        <div class="inv-header">
+            <h2 style="color:#00e5ff;">حقيبة الـ 1000 بلوك (Minecraft & MineFun)</h2>
+            <span style="color:#aaa;">اضغط E للإغلاق</span>
+        </div>
         <div class="inv-grid" id="invGrid"></div>
     </div>
 
     <div id="canvas-container"></div>
 
     <script>
-        // إعداد تكستشرات Canvas بدقة Pixel Art تضمن عملها 100% بدون مشكلة حظر
-        function generatePixelTexture(type) {
+        // مولد الـ 1000 بلوك تلقائياً بالتكستشرات والألوان المتنوعة
+        const all1000Blocks = [];
+        const baseNames = ['Grass', 'Dirt', 'Stone', 'Cobble', 'Plank', 'Brick', 'Diamond', 'Gold', 'Iron', 'Coal', 'Emerald', 'Lapis', 'Redstone', 'Obsidian', 'Glass', 'Wool', 'Concrete', 'Terracotta', 'Sand', 'Gravel'];
+
+        for (let i = 1; i <= 1000; i++) {
+            const baseIndex = (i - 1) % baseNames.length;
+            const name = `${baseNames[baseIndex]} #${i}`;
+            
+            // توليد لون وتكستشر فريد لكل بلوك
             const canvas = document.createElement('canvas');
             canvas.width = 16; canvas.height = 16;
             const ctx = canvas.getContext('2d');
 
-            if (type === 'grass') {
-                ctx.fillStyle = '#5b8731'; ctx.fillRect(0,0,16,16);
-                ctx.fillStyle = '#4d7228';
-                for(let i=0; i<30; i++) ctx.fillRect(Math.random()*16, Math.random()*16, 2, 2);
-            } else if (type === 'dirt') {
-                ctx.fillStyle = '#866043'; ctx.fillRect(0,0,16,16);
-                ctx.fillStyle = '#573d2a';
-                for(let i=0; i<35; i++) ctx.fillRect(Math.random()*16, Math.random()*16, 2, 2);
-            } else if (type === 'stone') {
-                ctx.fillStyle = '#737373'; ctx.fillRect(0,0,16,16);
-                ctx.fillStyle = '#525252';
-                for(let i=0; i<40; i++) ctx.fillRect(Math.random()*16, Math.random()*16, 2, 2);
-            } else if (type === 'plank') {
-                ctx.fillStyle = '#9c784e'; ctx.fillRect(0,0,16,16);
-                ctx.fillStyle = '#6e5233'; ctx.fillRect(0,4,16,1); ctx.fillRect(0,10,16,1);
-            } else if (type === 'brick') {
-                ctx.fillStyle = '#964b3c'; ctx.fillRect(0,0,16,16);
-                ctx.fillStyle = '#d1c2b8'; ctx.fillRect(0,7,16,2); ctx.fillRect(7,0,2,7); ctx.fillRect(12,9,2,7);
-            } else if (type === 'diamond') {
-                ctx.fillStyle = '#4aeded'; ctx.fillRect(0,0,16,16);
-                ctx.fillStyle = '#2bb3b3';
-                for(let i=0; i<25; i++) ctx.fillRect(Math.random()*16, Math.random()*16, 2, 2);
+            const hue = (i * 137.5) % 360; // توزيع الألوان بكسل
+            ctx.fillStyle = `hsl(${hue}, 60%, 45%)`;
+            ctx.fillRect(0, 0, 16, 16);
+
+            // نمط الخامة (Pixel Noise)
+            ctx.fillStyle = `hsl(${hue}, 70%, 30%)`;
+            for (let j = 0; j < 35; j++) {
+                ctx.fillRect(Math.floor(Math.random() * 16), Math.floor(Math.random() * 16), 1, 1);
+            }
+            ctx.fillStyle = `hsl(${hue}, 80%, 65%)`;
+            for (let j = 0; j < 15; j++) {
+                ctx.fillRect(Math.floor(Math.random() * 16), Math.floor(Math.random() * 16), 1, 1);
             }
 
             const texture = new THREE.CanvasTexture(canvas);
             texture.magFilter = THREE.NearestFilter;
-            return { texture, dataUrl: canvas.toDataURL() };
+            all1000Blocks.push({ id: i, name: name, texture: texture, src: canvas.toDataURL() });
         }
 
-        const blockTypes = [
-            { name: 'Grass', ...generatePixelTexture('grass') },
-            { name: 'Dirt', ...generatePixelTexture('dirt') },
-            { name: 'Stone', ...generatePixelTexture('stone') },
-            { name: 'Wood Planks', ...generatePixelTexture('plank') },
-            { name: 'Bricks', ...generatePixelTexture('brick') },
-            { name: 'Diamond Block', ...generatePixelTexture('diamond') }
-        ];
+        let selectedBlock = all1000Blocks[0];
 
-        let selectedBlock = blockTypes[0];
-
-        // بناء عناصر الشنطة
+        // تعبئة الـ 1000 بلوك في الشنطة
         const invGrid = document.getElementById('invGrid');
-        blockTypes.forEach((b) => {
+        all1000Blocks.forEach((b) => {
             const div = document.createElement('div');
             div.className = 'inv-item';
-            div.innerHTML = `<img src="${b.dataUrl}" class="inv-icon"><span>${b.name}</span>`;
+            div.innerHTML = `<img src="${b.src}"><span>${b.name}</span>`;
             div.onclick = () => {
                 selectedBlock = b;
                 document.getElementById('inventory').style.display = 'none';
@@ -168,28 +146,19 @@
             invGrid.appendChild(div);
         });
 
-        function showSingleplayerSetup() {
-            document.getElementById('mainMenu').style.display = 'none';
-            document.getElementById('setupMenu').style.display = 'flex';
-        }
-
-        function hideSingleplayerSetup() {
-            document.getElementById('setupMenu').style.display = 'none';
-            document.getElementById('mainMenu').style.display = 'flex';
-        }
-
         let scene, camera, renderer, raycaster;
-        let blocks = [];
+        let loadedChunks = {};
+        let activeBlocks = [];
         let keys = {};
         let yaw = 0, pitch = 0;
         let isPointerLocked = false;
-        let container = document.getElementById('canvas-container');
+        const container = document.getElementById('canvas-container');
 
-        function enterWorld() {
+        function enterGame() {
             const worldType = document.getElementById('worldType').value;
             const gameMode = document.getElementById('gameMode').value;
+            
             document.getElementById('modeDisplay').innerText = gameMode.toUpperCase();
-
             document.getElementById('lobbyScreen').style.display = 'none';
             document.getElementById('crosshair').style.display = 'block';
             document.getElementById('ui-overlay').style.display = 'block';
@@ -199,43 +168,60 @@
             container.requestPointerLock();
         }
 
-        function returnToLobby() {
-            document.exitPointerLock();
-            location.reload(); // إعادة التحميل لتنظيف العالم للبداية من جديد
-        }
-
         function initEngine(worldType) {
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x78a7ff);
+            scene.background = new THREE.Color(0x87ceeb);
 
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            container.innerHTML = '';
             container.appendChild(renderer.domElement);
 
             raycaster = new THREE.Raycaster();
-            scene.add(new THREE.AmbientLight(0xffffff, 1.0));
+            scene.add(new THREE.AmbientLight(0xffffff, 1.1));
 
-            // إنشاء العالم بناءً على الخيار
-            if (worldType === 'flat') {
-                for(let x = -8; x <= 8; x++) {
-                    for(let z = -8; z <= 8; z++) {
-                        createBlockMesh(x, 0, z, blockTypes[0]);
-                    }
-                }
-            } else {
-                // عالم فيه تضاريس
-                for(let x = -10; x <= 10; x++) {
-                    for(let z = -10; z <= 10; z++) {
-                        let h = Math.floor(Math.sin(x*0.4) * Math.cos(z*0.4) * 2);
-                        createBlockMesh(x, h, z, blockTypes[0]);
-                        createBlockMesh(x, h-1, z, blockTypes[1]);
+            camera.position.set(0, 5, 0);
+
+            function updateWorldChunks() {
+                const pX = Math.floor(camera.position.x / 8);
+                const pZ = Math.floor(camera.position.z / 8);
+
+                for (let x = pX - 2; x <= pX + 2; x++) {
+                    for (let z = pZ - 2; z <= pZ + 2; z++) {
+                        const key = `${x},${z}`;
+                        if (!loadedChunks[key]) {
+                            generateChunk(x, z, worldType);
+                            loadedChunks[key] = true;
+                        }
                     }
                 }
             }
 
-            camera.position.set(0, 4, 6);
+            function generateChunk(cx, cz, type) {
+                for (let x = 0; x < 8; x++) {
+                    for (let z = 0; z < 8; z++) {
+                        const wX = cx * 8 + x;
+                        const wZ = cz * 8 + z;
+                        
+                        if (type === 'infinite_flat') {
+                            addBlockMesh(wX, 0, wZ, all1000Blocks[0]);
+                        } else {
+                            let height = Math.floor(Math.sin(wX * 0.2) * Math.cos(wZ * 0.2) * 3);
+                            addBlockMesh(wX, height, wZ, all1000Blocks[0]);
+                            addBlockMesh(wX, height - 1, wZ, all1000Blocks[1]);
+                        }
+                    }
+                }
+            }
+
+            function addBlockMesh(x, y, z, block) {
+                const geo = new THREE.BoxGeometry(1, 1, 1);
+                const mat = new THREE.MeshBasicMaterial({ map: block.texture });
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.set(x, y, z);
+                scene.add(mesh);
+                activeBlocks.push(mesh);
+            }
 
             document.addEventListener('pointerlockchange', () => {
                 isPointerLocked = (document.pointerLockElement === container);
@@ -270,48 +256,41 @@
             window.addEventListener('mousedown', (e) => {
                 if (!isPointerLocked) return;
                 raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-                const intersects = raycaster.intersectObjects(blocks);
+                const intersects = raycaster.intersectObjects(activeBlocks);
 
                 if (intersects.length > 0) {
                     const hit = intersects[0];
-                    if (e.button === 0) { // تكسير
+                    if (e.button === 0) {
                         scene.remove(hit.object);
-                        blocks = blocks.filter(b => b !== hit.object);
-                    } else if (e.button === 2) { // بناء
+                        activeBlocks = activeBlocks.filter(b => b !== hit.object);
+                    } else if (e.button === 2) {
                         const pos = hit.point.add(hit.face.normal.clone().multiplyScalar(0.5));
-                        createBlockMesh(Math.round(pos.x), Math.round(pos.y), Math.round(pos.z), selectedBlock);
+                        addBlockMesh(Math.round(pos.x), Math.round(pos.y), Math.round(pos.z), selectedBlock);
                     }
                 }
             });
 
             window.addEventListener('contextmenu', e => e.preventDefault());
-            animate();
-        }
 
-        function createBlockMesh(x, y, z, blockType) {
-            const geo = new THREE.BoxGeometry(1, 1, 1);
-            const mat = new THREE.MeshBasicMaterial({ map: blockType.texture });
-            const mesh = new THREE.Mesh(geo, mat);
-            mesh.position.set(x, y, z);
-            scene.add(mesh);
-            blocks.push(mesh);
-        }
+            function animate() {
+                requestAnimationFrame(animate);
+                if (isPointerLocked) {
+                    const speed = keys['ShiftLeft'] ? 0.22 : 0.12;
+                    const dir = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+                    const side = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
 
-        function animate() {
-            requestAnimationFrame(animate);
-            if (isPointerLocked) {
-                const speed = keys['ShiftLeft'] ? 0.2 : 0.1;
-                const dir = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
-                const side = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+                    if (keys['KeyW']) camera.position.addScaledVector(dir, speed);
+                    if (keys['KeyS']) camera.position.addScaledVector(dir, -speed);
+                    if (keys['KeyD']) camera.position.addScaledVector(side, speed);
+                    if (keys['KeyA']) camera.position.addScaledVector(side, -speed);
+                    if (keys['Space']) camera.position.y += speed;
+                    if (keys['KeyC']) camera.position.y -= speed;
 
-                if (keys['KeyW']) camera.position.addScaledVector(dir, speed);
-                if (keys['KeyS']) camera.position.addScaledVector(dir, -speed);
-                if (keys['KeyD']) camera.position.addScaledVector(side, speed);
-                if (keys['KeyA']) camera.position.addScaledVector(side, -speed);
-                if (keys['Space']) camera.position.y += speed;
-                if (keys['KeyC']) camera.position.y -= speed;
+                    updateWorldChunks();
+                }
+                renderer.render(scene, camera);
             }
-            if (renderer && scene && camera) renderer.render(scene, camera);
+            animate();
         }
     </script>
 </body>
